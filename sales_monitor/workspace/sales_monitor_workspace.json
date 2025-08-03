@@ -1,0 +1,62 @@
+{
+    "label": "Sales Monitor",
+    "category": "Modules",
+    "type": "module",
+    "is_standard": 1,
+    "parent_page": null,
+    "link_type": "Tab",
+    "hidden": 0,
+    "cards": [
+        {
+            "label": "Sales Planning",
+            "type": "Card",
+            "icon": "fa fa-calendar",
+            "links": [
+                {
+                    "label": "Sales Visit Plan",
+                    "type": "doctype",
+                    "name": "Sales Visit Plan",
+                    "onboard": 1
+                }
+            ]
+        },
+        {
+            "label": "Sales Activities",
+            "type": "Card",
+            "icon": "fa fa-check-square-o",
+            "links": [
+                {
+                    "label": "Sales Activity Log",
+                    "type": "doctype",
+                    "name": "Sales Activity Log",
+                    "onboard": 1
+                }
+            ]
+        },
+        {
+            "label": "Reports",
+            "type": "Card",
+            "icon": "fa fa-bar-chart",
+            "links": [
+                {
+                    "label": "Sales Performance Report",
+                    "type": "report",
+                    "name": "Sales Performance Report",
+                    "is_query_report": 1
+                }
+            ]
+        },
+        {
+            "label": "Dashboards",
+            "type": "Card",
+            "icon": "fa fa-dashboard",
+            "links": [
+                {
+                    "label": "Sales Overview Dashboard",
+                    "type": "dashboard",
+                    "name": "Sales Overview Dashboard"
+                }
+            ]
+        }
+    ]
+}

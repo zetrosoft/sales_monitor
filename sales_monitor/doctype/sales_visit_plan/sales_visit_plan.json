@@ -1,0 +1,94 @@
+{
+    "name": "Sales Visit Plan",
+    "doctype": "DocType",
+    "module": "Sales Monitor",
+    "custom": 0,
+    "autoname": "autoincrement",
+    "creation": "2025-08-03 00:00:00.000000",
+    "modified": "2025-08-03 00:00:00.000000",
+    "modified_by": "Administrator",
+    "owner": "Administrator",
+    "naming_rule": "Autoincrement",
+    "editable_grid": 1,
+    "engine": "InnoDB",
+    "quick_entry": 1,
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "fields": [
+        {
+            "fieldname": "sales_person",
+            "fieldtype": "Link",
+            "label": "Sales Person",
+            "options": "Employee"
+        },
+        {
+            "fieldname": "customer",
+            "fieldtype": "Link",
+            "label": "Customer",
+            "options": "Customer"
+        },
+        {
+            "fieldname": "planned_visit_date",
+            "fieldtype": "Date",
+            "label": "Planned Visit Date"
+        },
+        {
+            "fieldname": "planned_visit_time",
+            "fieldtype": "Time",
+            "label": "Planned Visit Time"
+        },
+        {
+            "fieldname": "planned_location_address",
+            "fieldtype": "Small Text",
+            "label": "Planned Location Address"
+        },
+        {
+            "fieldname": "planned_location_latitude",
+            "fieldtype": "Data",
+            "label": "Planned Location Latitude"
+        },
+        {
+            "fieldname": "planned_location_longitude",
+            "fieldtype": "Data",
+            "label": "Planned Location Longitude"
+        },
+        {
+            "fieldname": "notes",
+            "fieldtype": "Text",
+            "label": "Notes"
+        },
+        {
+            "fieldname": "status",
+            "fieldtype": "Select",
+            "label": "Status",
+            "options": "Draft\nPlanned\nCompleted\nCancelled"
+        },
+        {
+            "fieldname": "sales_activity_log",
+            "fieldtype": "Link",
+            "label": "Sales Activity Log",
+            "options": "Sales Activity Log"
+        }
+    ],
+    "permissions": [
+        {
+            "role": "System Manager",
+            "read": 1,
+            "write": 1,
+            "create": 1,
+            "delete": 1,
+            "submit": 1,
+            "cancel": 1,
+            "amend": 1
+        },
+        {
+            "role": "Sales User",
+            "read": 1,
+            "write": 1,
+            "create": 1
+        }
+    ],
+    "actions": [],
+    "links": [],
+    "states": []
+}
