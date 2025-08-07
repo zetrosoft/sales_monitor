@@ -1,0 +1,140 @@
+{
+ "charts": [],
+ "content": "[{\"id\":\"sm_header\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h3\\\"><b>Sales Monitor</b></span>\",\"col\":12}},{\"id\":\"sm_shortcuts_header\",\"type\":\"paragraph\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Shortcuts</span>\",\"col\":12}},{\"id\":\"sm_shortcut_svp\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Sales Visit Plan\",\"col\":3}},{\"id\":\"sm_shortcut_sal\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Sales Activity Log\",\"col\":3}},{\"id\":\"sm_reports_header\",\"type\":\"paragraph\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Reports & Dashboards</span>\",\"col\":12}},{\"id\":\"sm_shortcut_spr\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Sales Performance Report\",\"col\":3}},{\"id\":\"sm_shortcut_sod\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Sales Overview Dashboard\",\"col\":3}},{\"id\":\"sm_card_planning\",\"type\":\"card\",\"data\":{\"card_name\":\"Sales Planning\",\"col\":4}},{\"id\":\"sm_card_activities\",\"type\":\"card\",\"data\":{\"card_name\":\"Sales Activities\",\"col\":4}}]",
+ "creation": "2025-08-03 18:30:00.000000",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "briefcase",
+ "idx": 1,
+ "indicator_color": "blue",
+ "is_hidden": 0,
+ "label": "Sales Monitor",
+ "links": [
+  {
+   "description": "Plan and manage sales visits.",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Sales Planning",
+   "link_count": 1,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Sales Visit Plan",
+   "link_count": 0,
+   "link_to": "Sales Visit Plan",
+   "link_type": "DocType",
+   "onboard": 1,
+   "type": "Link"
+  },
+  {
+   "description": "Log and track sales activities.",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Sales Activities",
+   "link_count": 1,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Sales Activity Log",
+   "link_count": 0,
+   "link_to": "Sales Activity Log",
+   "link_type": "DocType",
+   "onboard": 1,
+   "type": "Link"
+  },
+  {
+   "description": "Analyze sales performance.",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Reports",
+   "link_count": 1,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Sales Performance Report",
+   "link_count": 0,
+   "link_to": "Sales Analytics",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+    {
+   "description": "Visualize sales data.",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Dashboards",
+   "link_count": 1,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Sales Overview Dashboard",
+   "link_count": 0,
+   "link_to": "Selling",
+   "link_type": "Dashboard",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2025-08-03 18:30:00.000000",
+ "modified_by": "Administrator",
+ "module": "Sales Monitor",
+ "name": "Sales Monitor Workspace",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "restrict_to_domain": "",
+ "roles": [],
+ "sequence_id": 30.0,
+ "shortcuts": [
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Sales Visit Plan",
+   "link_to": "Sales Visit Plan",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Sales Activity Log",
+   "link_to": "Sales Activity Log",
+   "type": "DocType"
+  },
+  {
+   "color": "Blue",
+   "doc_view": "List",
+   "label": "Sales Analytics",
+   "link_to": "Sales Analytics",
+   "type": "Report"
+  },
+  {
+   "color": "Green",
+   "doc_view": "List",
+   "label": "Selling Dashboard",
+   "link_to": "Selling",
+   "type": "Dashboard"
+  }
+ ],
+ "title": "Sales Monitoring"
+}

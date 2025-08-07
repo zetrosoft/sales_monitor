@@ -1,0 +1,9 @@
+{
+    "name": "Performance Report",
+    "doctype": "Report",
+    "module": "Sales Monitor",
+    "is_standard": "Yes",
+    "report_name": "Performance Report",
+    "ref_doctype": "Sales Visit Plan",
+    "report_type": "Script Report"
+}

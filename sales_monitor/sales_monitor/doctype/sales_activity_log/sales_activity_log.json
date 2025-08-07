@@ -61,6 +61,21 @@
             "fieldname": "distance_from_planned",
             "fieldtype": "Float",
             "label": "Distance From Planned (km)"
+        },
+        {
+            "fieldname": "check_out_photo",
+            "fieldtype": "Attach Image",
+            "label": "Check Out Photo"
+        },
+        {
+            "fieldname": "customer_name",
+            "fieldtype": "Data",
+            "label": "Customer Name"
+        },
+        {
+            "fieldname": "sales_name",
+            "fieldtype": "Data",
+            "label": "Sales Name"
         }
     ],
     "permissions": [
