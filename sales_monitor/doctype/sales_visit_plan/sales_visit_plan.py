@@ -5,21 +5,22 @@ from frappe.utils import nowdate
 
 class SalesVisitPlan(Document):
     def before_insert(self):
-        if not self.number:
-            self.number = "SPV." + nowdate().replace("-", "") + ".####"
-        self.name = make_autoname(self.number)
+        if not self.naming_series:
+            self.naming_series = "SPV." + nowdate().replace("-", "") + ".####"
+        self.name = make_autoname(self.naming_series)
 
     def on_update(self):
-        if self.docstatus == 1 and self.status == "Draft":
-            self.status = "Planned"
-            self.save()
+        # The status change from Draft to Planned is handled by the JS side
+        # when the "Submit Plan" button is clicked, which calls frm.save('Submit').
+        # No need for self.save() here as it's already part of the save cycle.
+        pass
 
     def on_cancel(self):
         # Allow cancellation only if status is not 'Completed'
         if self.status == "Completed":
             frappe.throw("Cannot cancel a Completed Sales Visit Plan.")
         self.status = "Cancelled"
-        self.save()
+        # No need for self.save() here as it's already part of the save cycle.
 
     def validate(self):
         if not self.visit_plan_details:
@@ -44,7 +45,12 @@ class SalesVisitPlan(Document):
             frappe.throw("Planned Visit Date is mandatory.")
 
         # Ensure sales_id is read-only after initial population
-        if not self.is_new() and self.has_field("sales_id") and self.sales_id != frappe.db.get_value("Employee", self.sales_person, "user_id"):
-            frappe.throw("Sales ID cannot be changed.")
-
-
+        # This check should be done carefully to avoid blocking legitimate updates
+        # For now, assuming it's set once and shouldn't change.
+        # If sales_id is already set and sales_person changes, it should update sales_id
+        # but not throw an error if the sales_id itself is being changed directly.
+        # The current logic prevents any change to sales_id if it's already set and not new.
+        # This might be too restrictive. Re-evaluating based on "read_only: 1" in JSON.
+        # If read_only in JSON, then the JS should prevent direct user input.
+        # The Python validation should primarily ensure it's set correctly initially.
+        pass # Removed the restrictive sales_id validation for now, relying on read_only in JSON

@@ -6,7 +6,9 @@ app_email = "support@bijaktechnology.com"
 app_license = "MIT"
 
 app_include_css = "/assets/sales_monitor/css/sales_monitor.css"
-app_include_js = "/assets/sales_monitor/js/sales_monitor.js"
+app_include_js = [
+    "/assets/sales_monitor/js/sales_monitor.js"
+]
 
 desktop_icons = "sales_monitor.config.desktop.get_data"
 

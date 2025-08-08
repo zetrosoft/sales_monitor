@@ -3,12 +3,12 @@
     "doctype": "DocType",
     "module": "Sales Monitor",
     "custom": 0,
-    "autoname": "autoincrement",
+    "autoname": "field:number",
     "creation": "2025-08-03 00:00:00.000000",
     "modified": "2025-08-03 00:00:00.000000",
     "modified_by": "Administrator",
     "owner": "Administrator",
-    "naming_rule": "Autoincrement",
+    "naming_rule": "Set by user",
     "editable_grid": 1,
     "engine": "InnoDB",
     "is_submittable": 1,
@@ -17,74 +17,50 @@
     "sort_order": "DESC",
     "fields": [
         {
+            "fieldname": "number",
+            "fieldtype": "Select",
+            "label": "Number",
+            "options": "SPV.-.YYYY.MM.-.####",
+            "reqd": 1,
+            "default": "SPV.-.YYYY.MM.-."
+        },
+        {
             "fieldname": "sales_person",
             "fieldtype": "Link",
             "label": "Sales Person",
-            "options": "Employee"
+            "options": "Employee",
+            "reqd": 1
         },
         {
-            "fieldname": "customer",
-            "fieldtype": "Link",
-            "label": "Customer",
-            "options": "Customer",
-            "in_list_view": 1
+            "fieldname": "sales_id",
+            "fieldtype": "Data",
+            "label": "Sales ID",
+            "read_only": 1
         },
         {
             "fieldname": "planned_visit_date",
             "fieldtype": "Date",
             "label": "Planned Visit Date",
-            "in_list_view": 1
+            "in_list_view": 1,
+            "reqd": 1
         },
         {
-            "fieldname": "planned_visit_time",
-            "fieldtype": "Time",
-            "label": "Planned Visit Time"
+            "fieldname": "column_break_3",
+            "fieldtype": "Column Break"
         },
         {
-            "fieldname": "planned_location_address",
-            "fieldtype": "Small Text",
-            "label": "Planned Location Address",
-            "in_list_view": 1
+            "fieldname": "hr_break",
+            "fieldtype": "HTML",
+            "options": "<hr>"
         },
         {
-            "fieldname": "planned_location_latitude",
-            "fieldtype": "Data",
-            "label": "Planned Location Latitude"
-        },
-        {
-            "fieldname": "planned_location_longitude",
-            "fieldtype": "Data",
-            "label": "Planned Location Longitude"
-        },
-        {
-            "fieldname": "notes",
-            "fieldtype": "Text",
-            "label": "Notes",
-            "in_list_view": 1
-        },
-        {
-            "fieldname": "status",
-            "fieldtype": "Select",
-            "label": "Status",
-            "options": "Planned\nChecked In\nCompleted\nCancelled",
-            "in_list_view": 1
-        },
-        {
-            "fieldname": "sales_name",
-            "fieldtype": "Link",
-            "label": "Sales Name",
-            "options": "User"
-        },
-        {
-            "fieldname": "customer_name",
-            "fieldtype": "Data",
-            "label": "Customer Name"
-        },
-        {
-            "fieldname": "sales_activity_log",
-            "fieldtype": "Link",
-            "label": "Sales Activity Log",
-            "options": "Sales Activity Log"
+            "fieldname": "visit_plan_details",
+            "fieldtype": "Table",
+            "label": "Visit Plan Details",
+            "options": "Sales Visit Plan Item",
+            "reqd": 1,
+            "allow_bulk_edit": 1,
+            "width": "100%"
         }
     ],
     "permissions": [
@@ -102,7 +78,9 @@
             "role": "Sales User",
             "read": 1,
             "write": 1,
-            "create": 1
+            "create": 1,
+            "submit": 1,
+            "cancel": 1
         }
     ],
     "actions": [],

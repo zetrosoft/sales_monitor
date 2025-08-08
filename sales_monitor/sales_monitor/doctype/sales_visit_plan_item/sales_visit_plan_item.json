@@ -1,0 +1,70 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2025-08-08 01:13:28.316456",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "idx",
+  "customer",
+  "address",
+  "visit_time",
+  "notes",
+  "status"
+ ],
+ "fields": [
+  {
+   "fieldname": "idx",
+   "fieldtype": "Int",
+   "label": "No",
+   "read_only": 1
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Customer",
+   "options": "Customer",
+   "reqd": 1
+  },
+  {
+   "fieldname": "address",
+   "fieldtype": "Small Text",
+   "label": "Address",
+   "read_only": 1
+  },
+  {
+   "fieldname": "visit_time",
+   "fieldtype": "Time",
+   "in_list_view": 1,
+   "label": "Visit Time",
+   "reqd": 1
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Text",
+   "label": "Note"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Data",
+   "label": "Status",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 100,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-08-08 01:54:52.496203",
+ "modified_by": "Administrator",
+ "module": "Sales Monitor",
+ "name": "Sales Visit Plan Item",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
