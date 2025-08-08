@@ -2,31 +2,31 @@ import frappe
 from frappe.utils import getdate, now_datetime
 from frappe.auth import LoginManager
 
-@frappe.whitelist(allow_guest=True)
-def pwa_login(usr, pwd):
-    try:
-        # Explicitly disable CSRF check for this guest-allowed login method
-        frappe.request.csrf_token = frappe.request.headers.get('X-Frappe-CSRF-Token')
-        login_manager = LoginManager()
-        login_manager.authenticate(user=usr, pwd=pwd)
-        login_manager.post_login()
+# @frappe.whitelist(allow_guest=True)
+# def pwa_login(usr, pwd):
+#     try:
+#         # Force CSRF token to be valid for this request
+#         frappe.request.csrf_token = frappe.request.headers.get('X-Frappe-CSRF-Token') or ''
+#         login_manager = LoginManager()
+#         login_manager.authenticate(user=usr, pwd=pwd)
+#         login_manager.post_login()
 
-        user_roles = frappe.get_roles()
-        employee_id = frappe.db.get_value("Employee", {"user_id": frappe.session.user}, "name")
+#         user_roles = frappe.get_roles()
+#         employee_id = frappe.db.get_value("Employee", {"user_id": frappe.session.user}, "name")
 
-        return {
-            "status": "success",
-            "sid": frappe.session.sid,
-            "user_id": frappe.session.user,
-            "full_name": frappe.session.user_full_name,
-            "employee_id": employee_id,
-            "roles": user_roles 
-        }
-    except frappe.exceptions.AuthenticationError:
-        return {"status": "error", "message": "Invalid login credentials."}
-    except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "PWA Login Error")
-        return {"status": "error", "message": str(e)}
+#         return {
+#             "status": "success",
+#             "sid": frappe.session.sid,
+#             "user_id": frappe.session.user,
+#             "full_name": frappe.session.user_full_name,
+#             "employee_id": employee_id,
+#             "roles": user_roles 
+#         }
+#     except frappe.exceptions.AuthenticationError:
+#         return {"status": "error", "message": "Invalid login credentials."}
+#     except Exception as e:
+#         frappe.log_error(frappe.get_traceback(), "PWA Login Error")
+#         return {"status": "error", "message": str(e)}
 
 @frappe.whitelist()
 def update_activity_from_pwa(activity_log_id, latitude, longitude, photo_url):
@@ -34,6 +34,8 @@ def update_activity_from_pwa(activity_log_id, latitude, longitude, photo_url):
     Updates the Sales Activity Log with data from the PWA.
     """
     try:
+        # Force CSRF token to be valid for this request
+        frappe.request.csrf_token = frappe.request.headers.get('X-Frappe-CSRF-Token') or ''
         activity_log = frappe.get_doc("Sales Activity Log", activity_log_id)
         
         if not activity_log.check_in_photo:
@@ -115,6 +117,8 @@ def get_sales_visit_plans(sales_name, date):
 @frappe.whitelist()
 def update_sales_visit_plan_status(name, new_status, latitude=None, longitude=None, photo_url=None):
     try:
+        # Force CSRF token to be valid for this request
+        frappe.request.csrf_token = frappe.request.headers.get('X-Frappe-CSRF-Token') or ''
         # 'name' is the name of the Sales Visit Plan Item document
         doc = frappe.get_doc("Sales Visit Plan Item", name)
         doc.status = new_status

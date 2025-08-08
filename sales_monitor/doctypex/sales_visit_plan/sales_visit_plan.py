@@ -1,12 +1,12 @@
 import frappe
 from frappe.model.document import Document
 from frappe.model.naming import make_autoname
-from frappe.utils import nowdate
+from frappe.utils import nowdate, now_datetime
 
 class SalesVisitPlan(Document):
     def before_insert(self):
         if not self.naming_series:
-            self.naming_series = "SPV." + nowdate().replace("-", "") + ".####"
+            self.naming_series = "SPV." + now_datetime().strftime("%y%m") + ".######"
         self.name = make_autoname(self.naming_series)
 
     def on_update(self):

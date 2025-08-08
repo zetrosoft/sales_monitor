@@ -22,14 +22,16 @@
             "label": "Number",
             "options": "SPV.-.YYYY.MM.-.####",
             "reqd": 1,
-            "default": "SPV.-.YYYY.MM.-."
+            "default": "SPV.-.YYYY.MM.-.",
+            "in_list_view": 1
         },
         {
             "fieldname": "sales_person",
             "fieldtype": "Link",
             "label": "Sales Person",
             "options": "Employee",
-            "reqd": 1
+            "reqd": 1,
+            "in_list_view": 1
         },
         {
             "fieldname": "sales_id",
