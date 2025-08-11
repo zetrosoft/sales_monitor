@@ -256,3 +256,14 @@ def get_sales_activity_history(sales_person, from_date=None, to_date=None, custo
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Error in get_sales_activity_history")
         frappe.throw(f"Failed to fetch sales activity history: {e}")
+
+@frappe.whitelist()
+def get_next_sales_visit_plan_number():
+    from frappe.model.naming import make_autoname
+    from frappe.utils import now_datetime
+
+    year_month = now_datetime().strftime("%Y%m")
+    # Use a temporary doctype name for make_autoname to get the next series
+    # This is a common pattern when generating numbers without a full doc object
+    next_number = make_autoname(f"SPV.{year_month}.#####", doctype="Sales Visit Plan")
+    return next_number

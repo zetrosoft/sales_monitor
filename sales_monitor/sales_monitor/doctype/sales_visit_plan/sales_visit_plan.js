@@ -39,6 +39,18 @@ frappe.ui.form.on('Sales Visit Plan', {
             if (!frm.doc.planned_visit_date) {
                 frm.set_value('planned_visit_date', frappe.datetime.get_today());
             }
+
+            // Auto-populate number field
+            // if (!frm.doc.number) {
+            //     frappe.call({
+            //         method: 'sales_monitor.api.get_next_sales_visit_plan_number',
+            //         callback: function(r) {
+            //             if (r.message) {
+            //                 frm.set_value('number', r.message);
+            //             }
+            //         }
+            //     });
+            // }
         }
 
         // Add custom button for submit if status is Draft
@@ -94,6 +106,7 @@ frappe.ui.form.on('Sales Visit Plan Item', {
     customer: function(frm, cdt, cdn) {
         var row = locals[cdt][cdn];
         if (row.customer) {
+            console.log('Customer selected:', row.customer);
             frappe.call({
                 method: 'frappe.client.get_value',
                 args: {
@@ -104,8 +117,12 @@ frappe.ui.form.on('Sales Visit Plan Item', {
                     }
                 },
                 callback: function(r) {
+                    console.log('Frappe.call response:', r);
                     if (r.message) {
                         frappe.model.set_value(cdt, cdn, 'address', r.message.primary_address);
+                        console.log('Address set to:', r.message.primary_address);
+                    } else {
+                        console.log('No primary_address found or error in response.');
                     }
                 }
             });

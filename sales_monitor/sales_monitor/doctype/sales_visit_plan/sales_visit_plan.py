@@ -5,9 +5,9 @@ from frappe.utils import nowdate, now_datetime
 
 class SalesVisitPlan(Document):
     def before_insert(self):
-        if not self.naming_series:
-            self.naming_series = "SPV." + now_datetime().strftime("%y%m") + ".######"
-        self.name = make_autoname(self.naming_series)
+        # Set the naming_series field programmatically
+        year_month = now_datetime().strftime("%Y%m")
+        self.naming_series = f"SPV-{year_month}-" # Use hyphen for naming series
 
     def on_update(self):
         if self.docstatus == 1 and self.status == "Draft":
@@ -44,7 +44,7 @@ class SalesVisitPlan(Document):
             frappe.throw("Planned Visit Date is mandatory.")
 
         # Ensure sales_id is read-only after initial population
-        if not self.is_new() and self.has_field("sales_id") and self.sales_id != frappe.db.get_value("Employee", self.sales_person, "user_id"):
+        if not self.is_new() and self.sales_id != frappe.db.get_value("Employee", self.sales_person, "user_id"):
             frappe.throw("Sales ID cannot be changed.")
 
 @frappe.whitelist()
@@ -60,7 +60,7 @@ def get_sales_visit_plan_list(doctype, filters, start, page_len, order_by):
         start=start,
         page_length=page_len,
         order_by=order_by,
-        fields=["name", "sales_person", "planned_visit_date"]
+        fields=["name", "sales_person", "planned_visit_date", "planned_visit_count"] # Add planned_visit_count
     )
 
     for plan in sales_visit_plans:
@@ -72,12 +72,16 @@ def get_sales_visit_plan_list(doctype, filters, start, page_len, order_by):
                 "parenttype": "Sales Visit Plan",
                 "parentfield": "visit_plan_details"
             },
-            fields=["customer", "status"],
-            limit=1 # Just get one item to display in the list view
+            fields=["name"], # Only need name to count
+            as_list=True # Get as list for counting
         )
+        plan.planned_visit_count = len(items) # Count the items
+
+        # Fetch customer and status from the first item if available
         if items:
-            plan.customer = items[0].customer
-            plan.status = items[0].status
+            first_item = frappe.get_doc("Sales Visit Plan Item", items[0][0]) # Get the full doc for customer/status
+            plan.customer = first_item.customer
+            plan.status = first_item.status
         else:
             plan.customer = "N/A"
             plan.status = "N/A"

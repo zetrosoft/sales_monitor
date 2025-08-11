@@ -3,7 +3,7 @@
     "doctype": "DocType",
     "module": "Sales Monitor",
     "custom": 0,
-    "autoname": "field:number",
+    "autoname": "naming_series:",
     "creation": "2025-08-03 00:00:00.000000",
     "modified": "2025-08-03 00:00:00.000000",
     "modified_by": "Administrator",
@@ -18,12 +18,17 @@
     "fields": [
         {
             "fieldname": "number",
-            "fieldtype": "Select",
-            "label": "Number",
-            "options": "SPV.-.YYYY.MM.-.####",
-            "reqd": 1,
-            "default": "SPV.-.YYYY.MM.-.",
+            "fieldtype": "Data",
+            "label": "ID",
             "in_list_view": 1
+        },
+        {
+            "fieldname": "naming_series",
+            "fieldtype": "Select",
+            "label": "Naming Series",
+            "options": "SPV.YYYYMM.#####",
+            "default": "SPV.YYYYMM.",
+            "reqd": 1
         },
         {
             "fieldname": "sales_person",
@@ -34,12 +39,6 @@
             "in_list_view": 1
         },
         {
-            "fieldname": "sales_id",
-            "fieldtype": "Data",
-            "label": "Sales ID",
-            "read_only": 1
-        },
-        {
             "fieldname": "planned_visit_date",
             "fieldtype": "Date",
             "label": "Planned Visit Date",
@@ -47,13 +46,23 @@
             "reqd": 1
         },
         {
-            "fieldname": "column_break_3",
-            "fieldtype": "Column Break"
+            "fieldname": "sales_id",
+            "fieldtype": "Data",
+            "label": "Sales ID",
+            "read_only": 1
         },
         {
-            "fieldname": "hr_break",
-            "fieldtype": "HTML",
-            "options": "<hr>"
+            "fieldname": "planned_visit_count",
+            "fieldtype": "Int",
+            "label": "Planned Visit Count",
+            "in_list_view": 1,
+            "read_only": 1
+        },
+        {
+            "fieldname": "sb_visit_plan_details",
+            "fieldtype": "Section Break",
+            "label": "Visit Plan Details",
+            "new_row": 1
         },
         {
             "fieldname": "visit_plan_details",
