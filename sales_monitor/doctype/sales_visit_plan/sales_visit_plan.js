@@ -53,9 +53,12 @@ frappe.ui.form.on('Sales Visit Plan', {
             // }
         }
 
-        // Add custom button for submit if status is Draft
-        if (frm.doc.docstatus === 0 && frm.doc.status === 'Draft') {
-            frm.add_custom_button(__('Submit Plan'), function() {
+        // Hide the default Submit button
+        frm.page.hide_action_button('Submit');
+
+        // Add custom button for submit if status is Draft AND user has submit permission
+        if (frm.doc.docstatus === 0 && frm.doc.status === 'Draft' && frm.perm[0].submit) {
+            frm.add_custom_button(__("Submit Plan"), function() {
                 frm.set_value('status', 'Planned');
                 frm.save('Submit');
             }, 'Actions');
@@ -65,7 +68,7 @@ frappe.ui.form.on('Sales Visit Plan', {
         if (frm.doc.docstatus === 1 && (frm.doc.status === 'Planned' || frm.doc.status === 'Checked In')) {
             frm.add_custom_button(__('Cancel Plan'), function() {
                 frm.call({
-                    method: 'sales_monitor.sales_monitor.doctype.sales_visit_plan.sales_visit_plan.on_cancel',
+                    method: 'sales_monitor.sales_monitor.doctype.sales_visit_plan.sales_visit_plan.cancel_sales_visit_plan',
                     args: {
                         name: frm.doc.name
                     },
@@ -76,6 +79,17 @@ frappe.ui.form.on('Sales Visit Plan', {
                     }
                 });
             }, 'Actions');
+        }
+
+        // Set default visit_time for new rows in child table
+        if (frm.fields_dict['visit_plan_items'] && frm.fields_dict['visit_plan_items'].grid) {
+            frm.fields_dict['visit_plan_items'].grid.wrapper.on('grid_rows_add', function(e, rows) {
+                rows.forEach(function(row) {
+                    if (row.__islocal && !row.doc.visit_time) {
+                        frappe.model.set_value(row.doc.doctype, row.doc.name, 'visit_time', '07:00:00');
+                    }
+                });
+            });
         }
     },
 
@@ -119,8 +133,9 @@ frappe.ui.form.on('Sales Visit Plan Item', {
                 callback: function(r) {
                     console.log('Frappe.call response:', r);
                     if (r.message) {
-                        frappe.model.set_value(cdt, cdn, 'address', r.message.primary_address);
-                        console.log('Address set to:', r.message.primary_address);
+                        let cleaned_address = r.message.primary_address.replace(/<br\s*\/?>/gi, ' '); // Replace <br> tags with space
+                        frappe.model.set_value(cdt, cdn, 'address', cleaned_address);
+                        console.log('Address set to:', cleaned_address);
                     } else {
                         console.log('No primary_address found or error in response.');
                     }

@@ -1,0 +1,135 @@
+{
+ "charts": [],
+ "content": "[]",
+ "creation": "2025-08-14 01:07:57.000000",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "sales",
+ "idx": 1,
+ "indicator_color": "",
+ "is_hidden": 0,
+ "label": "Sales Monitor",
+ "links": [
+  {
+   "description": "Sales related documents",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Sales Documents",
+   "link_count": 0,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Sales Visit Plan",
+   "link_count": 0,
+   "link_to": "Sales Visit Plan",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Sales Activity Monitoring",
+   "link_count": 0,
+   "link_to": "Sales Activity Monitoring",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Sales Activity Log",
+   "link_count": 0,
+   "link_to": "Sales Activity Log",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Sales Visit Plan Item",
+   "link_count": 0,
+   "link_to": "Sales Visit Plan Item",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "description": "Sales related reports",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Reports",
+   "link_count": 0,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Performance Report",
+   "link_count": 0,
+   "link_to": "Performance Report",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2025-08-14 01:07:57.000000",
+ "modified_by": "Administrator",
+ "module": "Sales Monitor",
+ "name": "Sales Monitor",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "Sales",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [
+  {
+   "role": "Sales User"
+  },
+  {
+   "role": "Sales Manager"
+  },
+  {
+   "role": "Administrator"
+  }
+ ],
+ "sequence_id": 1.0,
+ "shortcuts": [
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Sales Visit Plan",
+   "link_to": "Sales Visit Plan",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Sales Activity Monitoring",
+   "link_to": "Sales Activity Monitoring",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Sales Activity Log",
+   "link_to": "Sales Activity Log",
+   "stats_filter": "[]",
+   "type": "DocType"
+  }
+ ],
+ "title": "Sales Monitor"
+}

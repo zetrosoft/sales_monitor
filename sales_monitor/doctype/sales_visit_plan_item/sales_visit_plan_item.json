@@ -1,6 +1,5 @@
 {
  "actions": [],
- "autoname": "field:name",
  "creation": "2025-08-08 01:13:28.316456",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -64,7 +63,6 @@
  "modified_by": "Administrator",
  "module": "Sales Monitor",
  "name": "Sales Visit Plan Item",
- "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [],
  "row_format": "Dynamic",

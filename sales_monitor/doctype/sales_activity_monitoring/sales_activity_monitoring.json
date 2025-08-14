@@ -1,0 +1,129 @@
+{
+ "actions": [],
+ "creation": "2025-08-14 00:07:57.262361",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "sales_person",
+  "customer",
+  "from_date",
+  "to_date",
+  "plan_date_time",
+  "checkin_time",
+  "checkout_time",
+  "duration",
+  "notes",
+  "map_link",
+  "image_link",
+  "status"
+ ],
+ "fields": [
+  {
+   "fieldname": "sales_person",
+   "fieldtype": "Link",
+   "in_filter": 1,
+   "label": "Sales Person",
+   "options": "Employee"
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_filter": 1,
+   "label": "Customer",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "from_date",
+   "fieldtype": "Date",
+   "in_filter": 1,
+   "label": "From Date"
+  },
+  {
+   "fieldname": "to_date",
+   "fieldtype": "Date",
+   "in_filter": 1,
+   "label": "To Date"
+  },
+  {
+   "fieldname": "plan_date_time",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Plan Date Time"
+  },
+  {
+   "fieldname": "checkin_time",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Checkin"
+  },
+  {
+   "fieldname": "checkout_time",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Checkout"
+  },
+  {
+   "fieldname": "duration",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Duration (mins)"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Text",
+   "in_list_view": 1,
+   "label": "Notes"
+  },
+  {
+   "fieldname": "map_link",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Map Link"
+  },
+  {
+   "fieldname": "image_link",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Image Link"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Draft\nPlanned\nChecked In\nCompleted\nCancelled"
+  }
+ ],
+ "links": [],
+ "modified": "2025-08-14 00:29:25.489838",
+ "modified_by": "Administrator",
+ "module": "Sales Monitor",
+ "name": "Sales Activity Monitoring",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "read": 1,
+   "role": "System Manager"
+  },
+  {
+   "read": 1,
+   "role": "Sales User"
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Administrator",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

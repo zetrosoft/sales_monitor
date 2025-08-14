@@ -5,21 +5,22 @@ from frappe.utils import nowdate, now_datetime
 
 class SalesVisitPlan(Document):
     def before_insert(self):
-        # Set the naming_series field programmatically
-        year_month = now_datetime().strftime("%Y%m")
-        self.naming_series = f"SPV-{year_month}-" # Use hyphen for naming series
+        if not self.naming_series:
+            self.naming_series = "SPV-.YYYY.-.######"
+        self.name = make_autoname(self.naming_series)
 
     def on_update(self):
-        if self.docstatus == 1 and self.status == "Draft":
+        pass
+
+    def before_submit(self):
+        if self.status == "Draft":
             self.status = "Planned"
-            self.save()
 
     def on_cancel(self):
         # Allow cancellation only if status is not 'Completed'
         if self.status == "Completed":
             frappe.throw("Cannot cancel a Completed Sales Visit Plan.")
         self.status = "Cancelled"
-        self.save()
 
     def validate(self):
         if not self.visit_plan_details:
@@ -30,6 +31,13 @@ class SalesVisitPlan(Document):
             employee_user_id = frappe.db.get_value("Employee", self.sales_person, "user_id")
             if employee_user_id:
                 self.sales_id = employee_user_id
+
+        # Populate employee_name from linked Employee
+        if self.sales_person:
+            self.employee_name = frappe.db.get_value("Employee", self.sales_person, "employee_name")
+
+        # Calculate planned_visit_count
+        self.planned_visit_count = len(self.visit_plan_details)
 
         # Ensure planned_visit_date is set to today's date on creation
         if self.is_new():
@@ -48,8 +56,14 @@ class SalesVisitPlan(Document):
             frappe.throw("Sales ID cannot be changed.")
 
 @frappe.whitelist()
+def cancel_sales_visit_plan(name):
+    """Cancels a Sales Visit Plan document."""
+    doc = frappe.get_doc("Sales Visit Plan", name)
+    doc.cancel()
+
+@frappe.whitelist()
 def get_list_context(context):
-    context.add_fields(["name", "sales_person", "planned_visit_date"])
+    context.add_fields(["name", "planned_visit_date", "employee_name", "status", "planned_visit_count"])
     context.get_list = get_sales_visit_plan_list
 
 def get_sales_visit_plan_list(doctype, filters, start, page_len, order_by):
@@ -60,10 +74,14 @@ def get_sales_visit_plan_list(doctype, filters, start, page_len, order_by):
         start=start,
         page_length=page_len,
         order_by=order_by,
-        fields=["name", "sales_person", "planned_visit_date", "planned_visit_count"] # Add planned_visit_count
+        fields=["name", "planned_visit_date", "sales_person", "employee_name", "status", "planned_visit_count"]
     )
 
     for plan in sales_visit_plans:
+        # Ensure employee_name is populated if sales_person is set
+        if plan.sales_person and not plan.employee_name:
+            plan.employee_name = frappe.db.get_value("Employee", plan.sales_person, "employee_name")
+
         # Fetch associated Sales Visit Plan Items
         items = frappe.get_all(
             "Sales Visit Plan Item",
@@ -76,14 +94,6 @@ def get_sales_visit_plan_list(doctype, filters, start, page_len, order_by):
             as_list=True # Get as list for counting
         )
         plan.planned_visit_count = len(items) # Count the items
-
-        # Fetch customer and status from the first item if available
-        if items:
-            first_item = frappe.get_doc("Sales Visit Plan Item", items[0][0]) # Get the full doc for customer/status
-            plan.customer = first_item.customer
-            plan.status = first_item.status
-        else:
-            plan.customer = "N/A"
-            plan.status = "N/A"
+        frappe.msgprint(f"Debug: Plan {plan.name} - Sales Person: {plan.employee_name}, Count: {plan.planned_visit_count}")
 
     return sales_visit_plans

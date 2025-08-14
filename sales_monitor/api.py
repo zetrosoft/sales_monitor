@@ -2,31 +2,31 @@ import frappe
 from frappe.utils import getdate, now_datetime
 from frappe.auth import LoginManager
 
-# @frappe.whitelist(allow_guest=True)
-# def pwa_login(usr, pwd):
-#     try:
-#         # Force CSRF token to be valid for this request
-#         frappe.request.csrf_token = frappe.request.headers.get('X-Frappe-CSRF-Token') or ''
-#         login_manager = LoginManager()
-#         login_manager.authenticate(user=usr, pwd=pwd)
-#         login_manager.post_login()
+@frappe.whitelist(allow_guest=True)
+def pwa_login(usr, pwd):
+    try:
+        # Force CSRF token to be valid for this request
+        frappe.request.csrf_token = frappe.request.headers.get('X-Frappe-CSRF-Token') or ''
+        login_manager = LoginManager()
+        login_manager.authenticate(user=usr, pwd=pwd)
+        login_manager.post_login()
 
-#         user_roles = frappe.get_roles()
-#         employee_id = frappe.db.get_value("Employee", {"user_id": frappe.session.user}, "name")
+        user_roles = frappe.get_roles()
+        employee_id = frappe.db.get_value("Employee", {"user_id": frappe.session.user}, "name")
 
-#         return {
-#             "status": "success",
-#             "sid": frappe.session.sid,
-#             "user_id": frappe.session.user,
-#             "full_name": frappe.session.user_full_name,
-#             "employee_id": employee_id,
-#             "roles": user_roles 
-#         }
-#     except frappe.exceptions.AuthenticationError:
-#         return {"status": "error", "message": "Invalid login credentials."}
-#     except Exception as e:
-#         frappe.log_error(frappe.get_traceback(), "PWA Login Error")
-#         return {"status": "error", "message": str(e)}
+        return {
+            "status": "success",
+            "sid": frappe.session.sid,
+            "user_id": frappe.session.user,
+            "full_name": frappe.session.user_full_name,
+            "employee_id": employee_id,
+            "roles": user_roles 
+        }
+    except frappe.exceptions.AuthenticationError:
+        return {"status": "error", "message": "Invalid login credentials."}
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "PWA Login Error")
+        return {"status": "error", "message": str(e)}
 
 @frappe.whitelist()
 def update_activity_from_pwa(activity_log_id, latitude, longitude, photo_url):
@@ -134,7 +134,10 @@ def update_sales_visit_plan_status(name, new_status, latitude=None, longitude=No
                 "sales_visit_plan_item": name, # Link to the child doc
                 "activity_time": now_datetime(),
                 "sales_person": parent_doc.sales_person,
-                "customer": doc.customer
+                "customer": doc.customer,
+                "actual_location_latitude": latitude,
+                "actual_location_longitude": longitude,
+                "check_in_photo": photo_url
             }).insert(ignore_permissions=True)
 
         elif new_status == "Completed":
@@ -146,9 +149,9 @@ def update_sales_visit_plan_status(name, new_status, latitude=None, longitude=No
                 "activity_time": now_datetime(),
                 "sales_person": parent_doc.sales_person,
                 "customer": doc.customer,
-                "latitude": latitude,
-                "longitude": longitude,
-                "photo_url": photo_url
+                "actual_location_latitude": latitude,
+                "actual_location_longitude": longitude,
+                "check_out_photo": photo_url
             }).insert(ignore_permissions=True)
 
         doc.save(ignore_permissions=True)
@@ -267,3 +270,21 @@ def get_next_sales_visit_plan_number():
     # This is a common pattern when generating numbers without a full doc object
     next_number = make_autoname(f"SPV.{year_month}.#####", doctype="Sales Visit Plan")
     return next_number
+
+@frappe.whitelist()
+def get_sales_activity_monitoring_data(sales_person=None, from_date=None, to_date=None, customer=None):
+    return [
+        {
+            "name": "TEST-001",
+            "plan_date_time": "2025-08-13 10:00:00",
+            "checkin_time": "2025-08-13 10:05:00",
+            "checkout_time": "2025-08-13 10:30:00",
+            "duration": 25,
+            "notes": "Test visit notes",
+            "map_link": "https://www.google.com/maps/search/?api=1&query=1.23,4.56",
+            "image_link": "http://example.com/image.jpg",
+            "status": "Completed",
+            "sales_person": "Test Sales Person",
+            "customer": "Test Customer"
+        }
+    ]
