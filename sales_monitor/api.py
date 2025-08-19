@@ -29,7 +29,6 @@ def pwa_login(usr, pwd):
         return {"status": "error", "message": str(e)}
 
 
-
 @frappe.whitelist(allow_guest=True)
 def get_sales_visit_plans(date=None):
     try:
