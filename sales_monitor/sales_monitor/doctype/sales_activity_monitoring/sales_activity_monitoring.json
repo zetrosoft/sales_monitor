@@ -33,6 +33,12 @@
    "options": "Customer"
   },
   {
+   "fieldname": "sales_visit_plan_item",
+   "fieldtype": "Link",
+   "label": "Sales Visit Plan Item",
+   "options": "Sales Visit Plan Item"
+  },
+  {
    "fieldname": "from_date",
    "fieldtype": "Date",
    "in_filter": 1,

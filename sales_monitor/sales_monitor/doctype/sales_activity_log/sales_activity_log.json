@@ -28,6 +28,23 @@
             "options": "Sales Visit Plan"
         },
         {
+            "fieldname": "sales_visit_plan_item",
+            "fieldtype": "Link",
+            "label": "Sales Visit Plan Item",
+            "options": "Sales Visit Plan Item"
+        },
+        {
+            "fieldname": "activity_type",
+            "fieldtype": "Select",
+            "label": "Activity Type",
+            "options": "\nCheck-in\nCheckout"
+        },
+        {
+            "fieldname": "activity_time",
+            "fieldtype": "Datetime",
+            "label": "Activity Time"
+        },
+        {
             "fieldname": "check_in_time",
             "fieldtype": "Datetime",
             "label": "Check In Time"
