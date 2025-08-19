@@ -8,6 +8,7 @@ from sales_monitor.api import get_sales_activity_monitoring_data
 
 class SalesActivityMonitoring(Document):
     def get_list(self, filters, start, page_len, order_by):
+        print(f"DEBUG: get_list called with filters: {filters}") # Added print statement
         sales_person = filters.get("sales_person")
         customer = filters.get("customer")
         from_date = filters.get("from_date")
@@ -19,6 +20,7 @@ class SalesActivityMonitoring(Document):
             from_date=from_date,
             to_date=to_date
         )
+        print(f"DEBUG: Data from get_sales_activity_monitoring_data: {data}") # Added print statement
         return data
 
     def get_count(self, filters):
