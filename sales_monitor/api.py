@@ -370,7 +370,7 @@ def get_dashboard_data():
             "status": "success",
             "total_visits_today": total_visits,
             "completed_visits_today": completed_visits,
-            "pending_visits_today": pending_visits,
+            "pending_visits": pending_visits,
             # "total_sales_month": total_sales_month,
             # "total_outstanding_sales": total_outstanding_sales,
             "achievement_percentage": achievement_percentage,
