@@ -313,12 +313,12 @@ def get_dashboard_data():
         pending_visits = 0 # Inisialisasi
 
         if parent_plan_name:
-            # Get total visits for today (Draft or Planned for today's plan)
+            # Get total visits for today (Draft, NULL, or Planned for today's plan)
             total_visits = frappe.db.count(
                 "Sales Visit Plan Item",
                 filters=[
                     ["parent", "=", parent_plan_name],
-                    ["status", "in", ["Draft", "Planned"]]
+                    ["status", "in", ["", " ", "Draft", "Planned"]]
                 ]
             )
         if parent_plan_all:
@@ -327,12 +327,12 @@ def get_dashboard_data():
                 "Sales Visit Plan Item",
                 filters={"parent": parent_plan_all, "status": "Completed"}
             )
-            # Get pending visits (Outstanding Visit) (Draft or Planned for this sales person)
+            # Get pending visits (Outstanding Visit) (Draft, NULL, or Planned for this sales person)
             pending_visits = frappe.db.count(
                 "Sales Visit Plan Item",
                 filters=[
                     ["parent", "=", parent_plan_all],
-                    ["status", "in", ["Draft", "Planned"]]
+                    ["status", "in", ["", " ", "Draft", "Planned"]]
                 ]
             )
 
