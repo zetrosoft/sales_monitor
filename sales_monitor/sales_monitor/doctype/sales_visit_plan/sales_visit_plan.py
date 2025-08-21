@@ -15,6 +15,8 @@ class SalesVisitPlan(Document):
     def before_submit(self):
         if self.status == "Draft":
             self.status = "Planned"
+            for item in self.visit_plan_details:
+                item.status = "Planned"
 
     def on_cancel(self):
         # Allow cancellation only if status is not 'Completed'

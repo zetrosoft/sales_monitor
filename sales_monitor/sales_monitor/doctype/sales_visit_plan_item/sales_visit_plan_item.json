@@ -53,7 +53,8 @@
    "fieldtype": "Data",
    "label": "Status",
    "read_only": 1,
-   "in_list_view": 1
+   "in_list_view": 1,
+   "default": "Draft"
   }
  ],
  "grid_page_length": 100,
