@@ -585,3 +585,35 @@ def get_sales_activity_monitoring_data(sales_person=None, customer=None, from_da
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Error in get_sales_activity_monitoring_data")
         frappe.throw(f"Failed to fetch sales activity monitoring data: {e}")
+
+@frappe.whitelist()
+def create_sales_visit_plan(sales_visit_plan_data):
+    try:
+        # 1. Buat dokumen Sales Visit Plan baru
+        doc = frappe.new_doc("Sales Visit Plan")
+
+        # 2. Set bidang parent
+        doc.sales_person = sales_visit_plan_data.get("sales_person")
+        doc.planned_visit_date = sales_visit_plan_data.get("planned_visit_date")
+        # Frappe akan menangani naming_series dan status default (Draft) secara otomatis
+
+        # 3. Tambahkan entri child table
+        for item_data in sales_visit_plan_data.get("visit_plan_details", []):
+            child_doc = doc.append("visit_plan_details", {})
+            child_doc.customer = item_data.get("customer")
+            child_doc.address = item_data.get("address")
+            child_doc.visit_time = item_data.get("visit_time")
+            child_doc.notes = item_data.get("notes")
+            # Status for child items is not explicitly passed from frontend as per new requirements,
+            # but if it were, it would be set here. For now, it will default in Frappe.
+            # child_doc.status = item_data.get("status")
+
+        # 4. Sisipkan dokumen
+        doc.insert()
+        frappe.db.commit()
+
+        return {"status": "success", "message": "Sales Visit Plan created successfully", "name": doc.name}
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Error in create_sales_visit_plan")
+        return {"status": "error", "message": str(e)}
