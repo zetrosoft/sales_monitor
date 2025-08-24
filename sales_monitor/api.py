@@ -30,7 +30,7 @@ def pwa_login(usr, pwd):
 
 
 @frappe.whitelist(allow_guest=True)
-def get_sales_visit_plans(date=None):
+def get_sales_visit_plans(date=None, limit_start=0, limit_page_length=5):
     try:
         sales_person = frappe.db.get_value("Employee", {"user_id": frappe.session.user}, "name")
         if not sales_person:
@@ -39,7 +39,7 @@ def get_sales_visit_plans(date=None):
         parent_plans = frappe.db.get_all(
             "Sales Visit Plan",
             filters={"sales_person": sales_person},
-            fields=["name", "planned_visit_date"]
+            fields=["name", "planned_visit_date", "docstatus"]  # Fetch docstatus
         )
 
         if not parent_plans:
@@ -47,12 +47,13 @@ def get_sales_visit_plans(date=None):
 
         parent_plan_names = [p["name"] for p in parent_plans]
         plan_dates = {p["name"]: p["planned_visit_date"] for p in parent_plans}
+        plan_statuses = {p["name"]: p["docstatus"] for p in parent_plans}  # Store docstatus
 
         visit_items = frappe.db.get_list(
             "Sales Visit Plan Item",
             filters={
                 "parent": ["in", parent_plan_names],
-                "status": ["not in", ["Completed", "Canceled"]]
+                "status": ["not in", ["Completed", "Cancelled"]]
             },
             fields=[
                 "name", "parent", "customer as store_name", "address",
@@ -85,6 +86,9 @@ def get_sales_visit_plans(date=None):
             parent_name = processed_item.get("parent")
             planned_date = plan_dates.get(parent_name)
             visit_time = processed_item.get('visit_time')
+            
+            # Add parent docstatus to the item
+            processed_item['parent_docstatus'] = plan_statuses.get(parent_name, 0) # Default to Draft
 
             if planned_date and visit_time:
                 processed_item['planned_visit_time'] = f"{frappe.utils.format_date(planned_date, 'dd-MM-yyyy')} {frappe.utils.format_time(visit_time, 'HH:mm')}"
@@ -107,22 +111,33 @@ def get_sales_visit_plans(date=None):
 
             if 'visit_time' in processed_item:
                 del processed_item['visit_time']
-            if 'parent' in processed_item:
-                del processed_item['parent']
+            
 
             processed_items.append(processed_item)
 
-        processed_items.sort(key=lambda x: (x['sort_key_date'], x['sort_key_time']))
+        processed_items.sort(key=lambda x: (STATUS_ORDER.get(x.get('status', 'Draft'), 99), x['sort_key_date'], x['sort_key_time']))
 
-        for item in processed_items:
+        limit_start = int(limit_start)
+        limit_page_length = int(limit_page_length)
+        paginated_items = processed_items[limit_start : limit_start + limit_page_length]
+
+        for item in paginated_items:
             del item['sort_key_date']
             del item['sort_key_time']
 
-        return processed_items
+        return paginated_items
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Error in get_sales_visit_plans")
         frappe.throw(f"Failed to fetch sales visit plans: {e}")
+
+STATUS_ORDER = {
+    "Planned": 0,
+    "Checked In":1,
+    "Completed": 2,
+    "Canceled": 3,
+    "Draft": 4,
+}
 
 
 
@@ -130,13 +145,16 @@ import frappe
 from frappe.utils.file_manager import save_file # Import save_file
 
 @frappe.whitelist()
-def submit_visit_update(name, new_status, latitude=None, longitude=None):
+def submit_visit_update(name, new_status, latitude=None, longitude=None, photo=None):
     try:
         doc = frappe.get_doc("Sales Visit Plan Item", name)
         parent_doc = frappe.get_doc("Sales Visit Plan", doc.parent)
 
         photo_url = None
-        if frappe.request.files:
+        if photo: # Check if photo is provided as an argument
+            file_doc = save_file(photo.filename, photo.stream.read(), "Sales Activity Monitoring", name)
+            photo_url = file_doc.file_url
+        elif frappe.request.files: # Fallback for file uploads via request.files
             files = frappe.request.files.getlist("photo")
             if files:
                 file_doc = save_file(files[0].filename, files[0].stream.read(), "Sales Activity Monitoring", name)
@@ -147,6 +165,7 @@ def submit_visit_update(name, new_status, latitude=None, longitude=None):
             
             activity = frappe.new_doc("Sales Activity Monitoring")
             activity.sales_person = parent_doc.sales_person
+            activity.employee_name = frappe.db.get_value("Employee", parent_doc.sales_person, "employee_name")
             activity.customer = doc.customer
             activity.sales_visit_plan_item = name
             activity.checkin_time = now_datetime()
@@ -157,7 +176,12 @@ def submit_visit_update(name, new_status, latitude=None, longitude=None):
 
             if latitude and longitude:
                 activity.map_link = f"https://www.google.com/maps?q={latitude},{longitude}"
+                activity.latitude = latitude
+                activity.longitude = longitude
             
+            if photo_url: # Save image_link on check-in if photo is provided
+                activity.image_link = photo_url
+
             activity.insert(ignore_permissions=True)
 
         elif new_status == "Completed":
@@ -168,9 +192,15 @@ def submit_visit_update(name, new_status, latitude=None, longitude=None):
                 activity = frappe.get_doc("Sales Activity Monitoring", activity_name)
                 activity.checkout_time = now_datetime()
                 activity.status = "Completed"
-                if photo_url:
+                
+                if photo_url: # Update image_link on checkout if photo is provided
                     activity.image_link = photo_url
                 
+                if latitude and longitude: # Update map_link and lat/lon on checkout if provided
+                    activity.map_link = f"https://www.google.com/maps?q={latitude},{longitude}"
+                    activity.latitude = latitude
+                    activity.longitude = longitude
+
                 if activity.checkin_time and activity.checkout_time:
                     checkin = get_datetime(activity.checkin_time)
                     checkout = get_datetime(activity.checkout_time)
@@ -529,7 +559,8 @@ def get_sales_activity_monitoring_data(sales_person=None, customer=None, from_da
             if current_sales_person:
                 filters["sales_person"] = current_sales_person
             else:
-                frappe.throw("Employee ID not found for current user and no sales_person provided.")
+                # If no sales_person is provided and current user is not an employee, return empty list
+                return []
 
 
         if from_date:
@@ -538,48 +569,48 @@ def get_sales_activity_monitoring_data(sales_person=None, customer=None, from_da
             to_date = getdate(to_date)
 
         if from_date and to_date:
-            filters["activity_time"] = ["between", (from_date, to_date)]
+            filters["checkin_time"] = ["between", (from_date, to_date)] # Filter by checkin_time
         elif from_date:
-            filters["activity_time"] = [">=", from_date]
+            filters["checkin_time"] = [">=", from_date]
         elif to_date:
-            filters["activity_time"] = ["<=", to_date]
+            filters["checkin_time"] = ["<=", to_date]
 
         if customer:
-            filters["customer"] = customer # Note: 'customer' field in Sales Activity Log is 'customer' not 'customer_name'
+            filters["customer"] = customer
 
-        frappe.log_error(f"get_sales_activity_monitoring_data: Querying Sales Activity Log with filters: {filters}", "Sales Person Debug")
+        frappe.log_error(f"get_sales_activity_monitoring_data: Querying Sales Activity Monitoring with filters: {filters}", "Sales Activity Monitoring Debug")
         raw_activities = frappe.db.get_list(
-            "Sales Activity Log",
+            "Sales Activity Monitoring", # Querying Sales Activity Monitoring DocType
             filters=filters,
             fields=[
-                "activity_time",
-                "customer", # Use 'customer' as per DocType
-                "activity_type",
-                "check_in_time",
-                "check_out_time",
+                "name", # ID
+                "employee_name", # Sales Name
+                "customer", # Customer Name
+                "plan_date_time", # Plan Date
+                "checkin_time", # Visit Date (Checkin)
+                "checkout_time", # Visit Date (Checkout)
+                "duration", # Duration (already calculated in DocType)
+                "image_link", # Photo
+                "map_link", # Map
+                "latitude", # For Map View
+                "longitude", # For Map View
+                "status", # Status
             ],
-            order_by="activity_time desc"
+            order_by="checkin_time desc" # Order by checkin_time
         )
 
         activities = []
         for d in raw_activities:
             activity = dict(d)
-            formatted_activity = {
-                "Date": frappe.utils.formatdate(activity.get("activity_time"), "YYYY-MM-DD") if activity.get("activity_time") else None,
-                "Customer": activity.get("customer"),
-                "Checkin": frappe.utils.format_time(activity.get("check_in_time")) if activity.get("check_in_time") else None,
-                "Checkout": frappe.utils.format_time(activity.get("check_out_time")) if activity.get("check_out_time") else None,
-                "Duration": 0,
-                "Status": activity.get("activity_type")
-            }
 
-            if activity.get("check_in_time") and activity.get("check_out_time"):
-                checkin = frappe.utils.get_datetime(activity["check_in_time"])
-                checkout = frappe.utils.get_datetime(activity["check_out_time"])()
-                duration_seconds = (checkout - checkin).total_seconds()
-                formatted_activity["Duration"] = round(duration_seconds / 60)
+            # Fetch customer address for hover
+            customer_address = frappe.db.get_value("Customer", activity.get("customer"), "primary_address")
+            if customer_address:
+                activity["customer_address"] = customer_address.replace('<br>', ' ').replace('<br/>', ' ') # Clean up address
+            else:
+                activity["customer_address"] = ""
 
-            activities.append(formatted_activity)
+            activities.append(activity)
 
         return activities
     except Exception as e:

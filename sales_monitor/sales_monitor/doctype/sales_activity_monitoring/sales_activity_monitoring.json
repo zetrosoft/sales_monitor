@@ -4,6 +4,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "custom_query": 1,
+ "list_js": "js/sales_activity_monitoring_list.js",
  "field_order": [
   "sales_person",
   "employee_name",

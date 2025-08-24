@@ -10,6 +10,26 @@ frappe.listview_settings['Sales Visit Plan'] = {
         } else if (doc.status === "Draft") {
             return [__("Draft"), "orange", "status,=,Draft"];
         }
-        return [__("Unknown"), "darkgrey"];
+        return [__("Draft"), "darkgrey"];
+    },
+    onload: function(listview) {
+        // Listen for real-time updates for Sales Visit Plan
+        frappe.realtime.on('doc_update', function(data) {
+            if (data.doctype === 'Sales Visit Plan' || data.doctype === 'Sales Visit Plan Item') {
+                listview.refresh();
+            }
+        });
+
+        frappe.realtime.on('doc_submit', function(data) {
+            if (data.doctype === 'Sales Visit Plan' || data.doctype === 'Sales Visit Plan Item') {
+                listview.refresh();
+            }
+        });
+
+        frappe.realtime.on('doc_cancel', function(data) {
+            if (data.doctype === 'Sales Visit Plan' || data.doctype === 'Sales Visit Plan Item') {
+                listview.refresh();
+            }
+        });
     }
 };

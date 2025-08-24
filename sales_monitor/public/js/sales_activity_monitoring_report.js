@@ -1,18 +1,20 @@
-// Sales Monitor JavaScript
-console.log("Sales Monitor app loaded.");
+// Copyright (c) 2024, a and contributors
+// For license information, please see license.txt
+/* eslint-disable */
 
 frappe.query_reports["Sales Activity Monitoring"] = {
     "filters": [
         {
             "fieldname": "sales_person",
             "label": __("Sales Person"),
-            "fieldtype": "Data",
+            "fieldtype": "Link",
+            "options": "Employee"
         },
         {
             "fieldname": "customer",
             "label": __("Customer"),
-            "fieldtype": "Data",
-            
+            "fieldtype": "Link",
+            "options": "Customer"
         },
         {
             "fieldname": "date_range",

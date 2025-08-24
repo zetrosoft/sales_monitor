@@ -54,7 +54,7 @@ frappe.ui.form.on('Sales Visit Plan', {
         }
 
         // Hide the default Submit button
-        frm.page.hide_action_button('Submit');
+        frm.remove_custom_button('Submit');
 
         // Add custom button for submit if status is Draft AND user has submit permission
         if (frm.doc.docstatus === 0 && frm.doc.status === 'Draft' && frm.perm[0].submit) {
@@ -91,6 +91,10 @@ frappe.ui.form.on('Sales Visit Plan', {
                 });
             });
         }
+    },
+
+    before_submit: function(frm) {
+        frm.set_value('status', 'Planned');
     },
 
     sales_person: function(frm) {

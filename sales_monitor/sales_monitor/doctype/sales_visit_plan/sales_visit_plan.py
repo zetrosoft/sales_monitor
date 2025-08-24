@@ -13,16 +13,21 @@ class SalesVisitPlan(Document):
         pass
 
     def before_submit(self):
-        if self.status == "Draft":
-            self.status = "Planned"
-            for item in self.visit_plan_details:
-                item.status = "Planned"
+        pass
+        
 
     def on_cancel(self):
         # Allow cancellation only if status is not 'Completed'
         if self.status == "Completed":
             frappe.throw("Cannot cancel a Completed Sales Visit Plan.")
         self.status = "Cancelled"
+
+    def on_submit(self):
+        frappe.msgprint("on_submit called")
+        # Set the status to Planned after successful submission
+        self.status = "Planned"
+        for item in self.visit_plan_details:
+            frappe.db.set_value("Sales Visit Plan Item", item.name, "status", "Planned")
 
     def validate(self):
         if not self.visit_plan_details:
@@ -41,9 +46,7 @@ class SalesVisitPlan(Document):
         # Calculate planned_visit_count
         self.planned_visit_count = len(self.visit_plan_details)
 
-        # Ensure planned_visit_date is set to today's date on creation
-        if self.is_new():
-            self.planned_visit_date = nowdate()
+        
 
         # Ensure sales_person is mandatory
         if not self.sales_person:
