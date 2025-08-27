@@ -18,7 +18,7 @@ doctype_js = {
 
 doctype_list_js = {
     "Sales Visit Plan": "sales_monitor/doctype/sales_visit_plan/sales_visit_plan_list.js",
-    "Sales Activity Monitoring": "js/sales_activity_monitoring_list.js" # Updated path
+    "Sales Activity Monitoring": "sales_monitor/js/sales_activity_monitoring_list.js" # Updated path
 }
 
 desktop_icons = "sales_monitor.config.desktop.get_data"
