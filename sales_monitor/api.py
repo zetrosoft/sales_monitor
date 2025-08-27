@@ -326,42 +326,47 @@ def get_dashboard_data():
         if not sales_person:
             return {"status": "error", "message": "Employee not found for the current user."}
 
-        # Get the parent Sales Visit Plan for today
-        parent_plan_name = frappe.db.get_value(
+        # Get all parent Sales Visit Plan names for today
+        today_parent_plans = frappe.db.get_list(
             "Sales Visit Plan",
             filters={"sales_person": sales_person, "planned_visit_date": today_date},
-            fieldname="name"
+            fields=["name"]
         )
-        #Get parent all
-        parent_plan_all = frappe.db.get_value(
+        parent_plan_name_list = [p.name for p in today_parent_plans] if today_parent_plans else []
+
+        # Get all parent Sales Visit Plan names for the sales person (all dates)
+        all_parent_plans = frappe.db.get_list(
             "Sales Visit Plan",
             filters={"sales_person": sales_person},
-            fieldname="name"
+            fields=["name"]
         )
+        parent_plan_all_names = [p.name for p in all_parent_plans] if all_parent_plans else []
+
         total_visits = 0
         completed_visits = 0
         pending_visits = 0 # Inisialisasi
 
-        if parent_plan_name:
+        if parent_plan_name_list:
             # Get total visits for today (Draft, NULL, or Planned for today's plan)
             total_visits = frappe.db.count(
                 "Sales Visit Plan Item",
                 filters=[
-                    ["parent", "=", parent_plan_name],
+                    ["parent", "in", parent_plan_name_list],
                     ["status", "in", ["", " ", "Draft", "Planned"]]
                 ]
             )
-        if parent_plan_all:
-            # Get completed visits for today (all completed for this sales person)
+        
+        if parent_plan_all_names:
+            # Get completed visits (all completed for this sales person across all plans)
             completed_visits = frappe.db.count(
                 "Sales Visit Plan Item",
-                filters={"parent": parent_plan_all, "status": "Completed"}
+                filters={"parent": ["in", parent_plan_all_names], "status": "Completed"}
             )
-            # Get pending visits (Outstanding Visit) (Draft, NULL, or Planned for this sales person)
+            # Get pending visits (Outstanding Visit) (Draft, NULL, or Planned for this sales person across all plans)
             pending_visits = frappe.db.count(
                 "Sales Visit Plan Item",
                 filters=[
-                    ["parent", "=", parent_plan_all],
+                    ["parent", "in", parent_plan_all_names],
                     ["status", "in", ["", " ", "Draft", "Planned"]]
                 ]
             )
@@ -404,7 +409,7 @@ def get_dashboard_data():
             # "total_sales_month": total_sales_month,
             # "total_outstanding_sales": total_outstanding_sales,
             "achievement_percentage": achievement_percentage,
-            "test":parent_plan_all
+            "test":parent_plan_all_names # Changed from parent_plan_all
         }
 
     except Exception as e:
@@ -537,10 +542,7 @@ def get_weekly_customer_order_data():
                 row[customer] = total_sales
             formatted_data.append(row)
 
-        return {
-            "status": "success",
-            "data": formatted_data
-        }
+        return {"status": "success", "data": formatted_data}
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Error in get_weekly_customer_order_data")

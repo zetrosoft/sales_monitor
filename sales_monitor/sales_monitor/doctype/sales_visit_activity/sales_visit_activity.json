@@ -1,0 +1,110 @@
+{
+    "actions": [],
+    "creation": "2025-08-25 10:00:00.000000",
+    "doctype": "DocType",
+    "engine": "InnoDB",
+    "field_order": [
+        "sales_person",
+        "customer",
+        "plan_date_time",
+        "checkin_time",
+        "checkout_time",
+        "duration",
+        "notes",
+        "latitude",
+        "longitude",
+        "map_link",
+        "image_link",
+        "status"
+    ],
+    "fields": [
+        {
+            "fieldname": "sales_person",
+            "fieldtype": "Data",
+            "label": "Sales Person",
+            "in_list_view": 1
+        },
+        {
+            "fieldname": "customer",
+            "fieldtype": "Data",
+            "label": "Customer",
+            "in_list_view": 1
+        },
+        {
+            "fieldname": "plan_date_time",
+            "fieldtype": "Datetime",
+            "label": "Plan Date Time",
+            "in_list_view": 1
+        },
+        {
+            "fieldname": "checkin_time",
+            "fieldtype": "Datetime",
+            "label": "Checkin Time",
+            "in_list_view": 1
+        },
+        {
+            "fieldname": "checkout_time",
+            "fieldtype": "Datetime",
+            "label": "Checkout Time"
+        },
+        {
+            "fieldname": "duration",
+            "fieldtype": "Duration",
+            "label": "Duration",
+            "in_list_view": 1
+        },
+        {
+            "fieldname": "notes",
+            "fieldtype": "Text",
+            "label": "Notes"
+        },
+        {
+            "fieldname": "map_link",
+            "fieldtype": "Data",
+            "label": "Map Link",
+            "in_list_view": 1
+        },
+        {
+            "fieldname": "image_link",
+            "fieldtype": "Data",
+            "label": "Image Link",
+            "in_list_view": 1
+        },
+        {
+            "fieldname": "status",
+            "fieldtype": "Data",
+            "label": "Status"
+        },
+        {
+            "fieldname": "latitude",
+            "fieldtype": "Data",
+            "label": "Latitude"
+        },
+        {
+            "fieldname": "longitude",
+            "fieldtype": "Data",
+            "label": "Longitude"
+        }
+    ],
+    "is_virtual": 1,
+    "links": [],
+    "modified": "2025-08-25 10:00:00.000000",
+    "modified_by": "Administrator",
+    "module": "Sales Monitor",
+    "name": "Sales Visit Activity",
+    "options": "Sales Activity Monitoring",
+    "owner": "Administrator",
+    "permissions": [
+        {
+            "role": "System Manager",
+            "read": 1
+        },
+        {
+            "role": "Sales User",
+            "read": 1
+        }
+    ],
+    "sort_field": "creation",
+    "sort_order": "DESC",
+    "states": []
+}
