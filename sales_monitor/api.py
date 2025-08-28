@@ -371,30 +371,6 @@ def get_dashboard_data():
                 ]
             )
 
-        # # Get total sales for the current month
-        # start_of_month = get_first_day(today_date)
-        # end_of_month = get_last_day(today_date)
-
-        # frappe.log_error(f"get_dashboard_data: Querying total sales for sales_person: {sales_person}, month: {start_of_month} to {end_of_month} via Sales Team", "Sales Person Debug")
-        # total_sales_month = frappe.db.sql(f"""
-        #     SELECT SUM(so.grand_total)
-        #     FROM `tabSales Order` so
-        #     JOIN `tabSales Team` st ON so.name = st.parent
-        #     WHERE st.sales_person = '{sales_person}'
-        #       AND so.transaction_date BETWEEN '{start_of_month}' AND '{end_of_month}'
-        #       AND so.docstatus = 1
-        # """, as_dict=False)[0][0] or 0
-
-        # # Calculate Total Outstanding Sales
-        # total_outstanding_sales = frappe.db.get_value(
-        #     "Sales Order",
-        #     filters={
-        #         "sales_person": sales_person,
-        #         "docstatus": 1, # Submitted
-        #         "status": ["not in", ["Completed", "Cancelled"]]
-        #     },
-        #     fieldname="SUM(grand_total)"
-        # ) or 0
 
         # Calculate Achievement Percentage (Pencapaian)
         achievement_percentage = 0
