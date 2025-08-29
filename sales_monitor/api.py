@@ -242,7 +242,7 @@ def get_order_history(store_name):
         frappe.log_error(frappe.get_traceback(), "Error in get_order_history")
         frappe.throw(f"Failed to fetch order history: {e}")
 
-@frappe.whitelist(allow_guest=False, allow_roles=["Sales User"])
+@frappe.whitelist(allow_guest=True)
 def get_employee_id(user_id):
     try:
         employee = frappe.db.get_value("Employee", {"user_id": user_id}, "name")
