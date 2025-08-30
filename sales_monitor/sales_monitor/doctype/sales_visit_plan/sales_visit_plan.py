@@ -99,6 +99,5 @@ def get_sales_visit_plan_list(doctype, filters, start, page_len, order_by):
             as_list=True # Get as list for counting
         )
         plan.planned_visit_count = len(items) # Count the items
-        frappe.msgprint(f"Debug: Plan {plan.name} - Sales Person: {plan.employee_name}, Count: {plan.planned_visit_count}")
 
     return sales_visit_plans
