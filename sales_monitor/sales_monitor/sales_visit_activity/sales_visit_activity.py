@@ -1,4 +1,3 @@
-
 # Copyright (c) 2025, [Your Name] and contributors
 # For license information, please see license.txt
 
@@ -27,6 +26,15 @@ class SalesVisitActivity(Document):
     @staticmethod
     def get_list(filters=None, page_length=20, order_by=None, fields=None):
         
+        # For virtual doctypes, get_list is called with a single dict argument
+        # We need to extract the actual arguments from it.
+        if isinstance(filters, dict) and "doctype" in filters:
+            args = filters
+            filters = args.get("filters")
+            page_length = args.get("page_length") or args.get("limit_page_length") or page_length
+            order_by = args.get("order_by") or order_by
+            fields = args.get("fields") or fields
+
         # The doctype to query from
         source_doctype = "Sales Activity Monitoring"
 
@@ -49,16 +57,24 @@ class SalesVisitActivity(Document):
         if isinstance(parsed_filters, list) and not parsed_filters:
             parsed_filters = {}
 
+        # Parse fields if they are a string
+        parsed_fields = fields
+        if isinstance(fields, str):
+            try:
+                parsed_fields = json.loads(fields)
+            except json.JSONDecodeError:
+                pass # Not a JSON string, assume single field or comma-separated
+
         # Get the list of fields to fetch from the source table
-        if not fields:
+        if not parsed_fields:
             meta = frappe.get_meta(source_doctype)
-            fields = [df.fieldname for df in meta.fields if df.in_list_view]
-            fields.extend(['name', 'latitude', 'longitude'])
+            parsed_fields = [df.fieldname for df in meta.fields if df.in_list_view]
+            parsed_fields.extend(['name', 'latitude', 'longitude'])
 
         data = frappe.get_list(
             source_doctype,
             filters=parsed_filters,
-            fields=list(set(fields)),
+            fields=list(set(parsed_fields)),
             order_by=order_by,
             limit_page_length=page_length,
             limit_start=frappe.form_dict.get('start', 0)
@@ -69,15 +85,19 @@ class SalesVisitActivity(Document):
     @staticmethod
     def get_count(filters=None):
         
+        actual_filters = filters
+        if isinstance(filters, dict) and "filters" in filters:
+            actual_filters = filters["filters"]
+
         # Parse filters if they are a string and ensure it's a dict
         parsed_filters = {}
-        if isinstance(filters, str):
+        if isinstance(actual_filters, str):
             try:
-                parsed_filters = json.loads(filters)
+                parsed_filters = json.loads(actual_filters)
             except json.JSONDecodeError:
                 parsed_filters = {}
-        elif isinstance(filters, (list, dict)):
-            parsed_filters = filters
+        elif isinstance(actual_filters, (list, dict)):
+            parsed_filters = actual_filters
 
         if isinstance(parsed_filters, list) and not parsed_filters:
             parsed_filters = {}

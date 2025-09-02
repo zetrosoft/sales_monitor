@@ -1,6 +1,0 @@
-{
- "report_name": "Sales Activity Monitoring",
- "report_type": "Script Report",
- "is_standard": "Yes",
- "module": "Sales Monitor"
-}

@@ -1,0 +1,8 @@
+{
+  "sales_monitor.css": [
+    "public/css/sales_monitor.css"
+  ],
+  "sales_monitor.js": [
+    "sales_monitor/public/js/sales_activity_monitoring.js"
+  ]
+}

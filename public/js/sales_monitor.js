@@ -1,7 +1,7 @@
 // Sales Monitor JavaScript
 console.log("Sales Monitor app loaded.");
 
-frappe.query_reports["Sales Activity Monitoring"] = {
+/* frappe.query_reports["Sales Activity Monitoring"] = {
     "filters": [
         {
             "fieldname": "sales_person",
@@ -46,4 +46,4 @@ frappe.query_reports["Sales Activity Monitoring"] = {
 
         return value;
     }
-};
+}; */

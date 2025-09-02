@@ -1,118 +1,68 @@
 {
  "actions": [],
- "creation": "2025-08-14 00:07:57.262361",
+ "autoname": "autoincrement",
+ "creation": "2025-09-01 12:00:00",
  "doctype": "DocType",
  "engine": "InnoDB",
- "custom_query": 1,
- "list_js": "js/sales_activity_monitoring_list.js",
  "field_order": [
-  "sales_person",
-  "employee_name",
   "customer",
-  "from_date",
-  "to_date",
+  "sales_person",
   "plan_date_time",
   "checkin_time",
-  "checkout_time",
   "duration",
-  "notes",
+  "column_break_sdbc",
+  "image_link",
+  "image_html",
   "latitude",
   "longitude",
+  "status",
+  "section_break_nkid",
   "map_link",
-  "image_link",
-  "status"
+  "map_html"
  ],
  "fields": [
   {
-   "fieldname": "sales_person",
-   "fieldtype": "Link",
-   "in_filter": 1,
-   "label": "Sales Person",
-   "options": "Employee"
-  },
-  {
-   "fieldname": "employee_name",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "in_filter": 1,
-   "label": "Sales Name"
-  },
-  {
    "fieldname": "customer",
    "fieldtype": "Link",
-   "in_filter": 1,
+   "in_list_view": 1,
    "label": "Customer",
    "options": "Customer"
   },
   {
-   "fieldname": "sales_visit_plan_item",
+   "fieldname": "sales_person",
    "fieldtype": "Link",
-   "label": "Sales Visit Plan Item",
-   "options": "Sales Visit Plan Item"
-  },
-  {
-   "fieldname": "from_date",
-   "fieldtype": "Date",
-   "in_filter": 1,
-   "label": "From Date"
-  },
-  {
-   "fieldname": "to_date",
-   "fieldtype": "Date",
-   "in_filter": 1,
-   "label": "To Date"
+   "in_list_view": 1,
+   "label": "Sales Person",
+   "options": "User"
   },
   {
    "fieldname": "plan_date_time",
    "fieldtype": "Datetime",
    "in_list_view": 1,
-   "label": "Plan Date Time"
+   "label": "Plan Date"
   },
   {
    "fieldname": "checkin_time",
    "fieldtype": "Datetime",
    "in_list_view": 1,
-   "label": "Checkin"
-  },
-  {
-   "fieldname": "checkout_time",
-   "fieldtype": "Datetime",
-   "in_list_view": 1,
-   "label": "Checkout"
+   "label": "Checkin Time"
   },
   {
    "fieldname": "duration",
    "fieldtype": "Float",
    "in_list_view": 1,
-   "label": "Duration (mins)"
+   "label": "Duration"
   },
   {
-   "fieldname": "notes",
-   "fieldtype": "Text",
-   "in_list_view": 1,
-   "label": "Notes"
-  },
-  {
-   "fieldname": "latitude",
-   "fieldtype": "Data",
-   "label": "Latitude"
-  },
-  {
-   "fieldname": "longitude",
-   "fieldtype": "Data",
-   "label": "Longitude"
+   "fieldname": "image_link",
+   "fieldtype": "Attach Image",
+   "label": "Photo"
   },
   {
    "fieldname": "map_link",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Map Link"
-  },
-  {
-   "fieldname": "image_link",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Image Link"
+   "label": "Map"
   },
   {
    "fieldname": "status",
@@ -120,23 +70,45 @@
    "in_list_view": 1,
    "label": "Status",
    "options": "Draft\nPlanned\nChecked In\nCompleted\nCancelled"
+  },
+  {
+   "fieldname": "latitude",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "in_list_view": 1,
+   "label": "Latitude"
+  },
+  {
+   "fieldname": "longitude",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "in_list_view": 1,
+   "label": "Longitude"
+  },
+  {
+   "fieldname": "column_break_sdbc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_nkid",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "map_html",
+   "fieldtype": "HTML"
+  },
+  {
+   "fieldname": "image_html",
+   "fieldtype": "HTML"
   }
  ],
  "links": [],
- "modified": "2025-08-14 00:29:25.489838",
+ "modified": "2025-09-02 15:04:42.329301",
  "modified_by": "Administrator",
  "module": "Sales Monitor",
  "name": "Sales Activity Monitoring",
  "owner": "Administrator",
  "permissions": [
-  {
-   "read": 1,
-   "role": "System Manager"
-  },
-  {
-   "read": 1,
-   "role": "Sales User"
-  },
   {
    "create": 1,
    "delete": 1,
@@ -145,7 +117,7 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "Administrator",
+   "role": "System Manager",
    "share": 1,
    "write": 1
   }
@@ -153,5 +125,6 @@
  "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

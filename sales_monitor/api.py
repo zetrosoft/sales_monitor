@@ -179,8 +179,6 @@ def submit_visit_update(name, new_status, latitude=None, longitude=None, photo=N
                 activity.latitude = latitude
                 activity.longitude = longitude
             
-            if photo_url: # Save image_link on check-in if photo is provided
-                activity.image_link = photo_url
 
             activity.insert(ignore_permissions=True)
 
@@ -206,6 +204,9 @@ def submit_visit_update(name, new_status, latitude=None, longitude=None, photo=N
                     checkout = get_datetime(activity.checkout_time)
                     duration_seconds = (checkout - checkin).total_seconds()
                     activity.duration = round(duration_seconds / 60)
+                
+                if photo_url: # Save image_link on check-in if photo is provided
+                    activity.image_link = photo_url
 
                 activity.save(ignore_permissions=True)
             else:
