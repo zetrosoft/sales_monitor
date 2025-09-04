@@ -1,14 +1,16 @@
 {
  "actions": [],
- "autoname": "autoincrement",
+ "autoname": "SAL-ACTY-.####",
  "creation": "2025-09-01 12:00:00",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
   "customer",
   "sales_person",
+  "sales_visit_plan_item",
   "plan_date_time",
   "checkin_time",
+  "checkout_time",
   "duration",
   "column_break_sdbc",
   "image_link",
@@ -29,11 +31,11 @@
    "options": "Customer"
   },
   {
-   "fieldname": "sales_person",
+   "fieldname": "sales_visit_plan_item",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Sales Person",
-   "options": "User"
+   "label": "Sales Visit Plan Item",
+   "options": "Sales Visit Plan Item"
   },
   {
    "fieldname": "plan_date_time",
@@ -46,6 +48,12 @@
    "fieldtype": "Datetime",
    "in_list_view": 1,
    "label": "Checkin Time"
+  },
+  {
+   "fieldname": "checkout_time",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Checkout Time"
   },
   {
    "fieldname": "duration",
@@ -99,14 +107,23 @@
   },
   {
    "fieldname": "image_html",
-   "fieldtype": "HTML"
+   "fieldtype": "HTML",
+   "label": "Image Preview"
+  },
+  {
+   "fieldname": "sales_person",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Sales Person",
+   "options": "Employee"
   }
  ],
  "links": [],
- "modified": "2025-09-02 15:04:42.329301",
+ "modified": "2025-09-04 11:33:25.227121",
  "modified_by": "Administrator",
  "module": "Sales Monitor",
  "name": "Sales Activity Monitoring",
+ "naming_rule": "Autoincrement",
  "owner": "Administrator",
  "permissions": [
   {

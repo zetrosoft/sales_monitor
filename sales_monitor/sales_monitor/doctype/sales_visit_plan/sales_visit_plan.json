@@ -36,7 +36,7 @@
    "fieldname": "employee_name",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Sales Person"
+   "label": "Sales Name"
   },
   {
    "fieldname": "planned_visit_date",
@@ -87,18 +87,18 @@
    "search_index": 1
   },
   {
+   "default": "Draft",
    "fieldname": "status",
    "fieldtype": "Select",
    "hidden": 1,
    "label": "Status",
    "options": "Draft\nPlanned\nChecked In\nCompleted",
-   "default": "Draft",
    "reqd": 1
   }
  ],
  "is_submittable": 1,
  "links": [],
- "modified": "2025-08-16 10:48:04.597795",
+ "modified": "2025-09-04 16:27:01.998519",
  "modified_by": "Administrator",
  "module": "Sales Monitor",
  "name": "Sales Visit Plan",

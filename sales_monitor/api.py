@@ -5,8 +5,6 @@ from frappe.auth import LoginManager
 @frappe.whitelist(allow_guest=True)
 def pwa_login(usr, pwd):
     try:
-        # Force CSRF token to be valid for this request
-        # frappe.request.csrf_token = frappe.request.headers.get('X-Frappe-CSRF-Token') or '' # Nonaktifkan untuk login awal PWA
         login_manager = LoginManager()
         login_manager.authenticate(user=usr, pwd=pwd)
         login_manager.post_login()
@@ -28,18 +26,21 @@ def pwa_login(usr, pwd):
         frappe.log_error(frappe.get_traceback(), "PWA Login Error")
         return {"status": "error", "message": str(e)}
 
-
 @frappe.whitelist(allow_guest=True)
 def get_sales_visit_plans(date=None, limit_start=0, limit_page_length=5):
     try:
-        sales_person = frappe.db.get_value("Employee", {"user_id": frappe.session.user}, "name")
-        if not sales_person:
+        employee_id = frappe.db.get_value("Employee", {"user_id": frappe.session.user}, "name")
+        if not employee_id:
             frappe.throw("Employee ID not found for current user.")
+
+        sales_person_id = frappe.db.get_value("Sales Person", {"employee": employee_id}, "name")
+        if not sales_person_id:
+            frappe.throw(f"Could not find linked Sales Person for Employee: {employee_id}")
 
         parent_plans = frappe.db.get_all(
             "Sales Visit Plan",
-            filters={"sales_person": sales_person},
-            fields=["name", "planned_visit_date", "docstatus"]  # Fetch docstatus
+            filters=[["sales_person", "in", [sales_person_id, employee_id]]],
+            fields=["name", "planned_visit_date", "docstatus"]
         )
 
         if not parent_plans:
@@ -47,7 +48,7 @@ def get_sales_visit_plans(date=None, limit_start=0, limit_page_length=5):
 
         parent_plan_names = [p["name"] for p in parent_plans]
         plan_dates = {p["name"]: p["planned_visit_date"] for p in parent_plans}
-        plan_statuses = {p["name"]: p["docstatus"] for p in parent_plans}  # Store docstatus
+        plan_statuses = {p["name"]: p["docstatus"] for p in parent_plans}
 
         visit_items = frappe.db.get_list(
             "Sales Visit Plan Item",
@@ -67,14 +68,19 @@ def get_sales_visit_plans(date=None, limit_start=0, limit_page_length=5):
         activity_docs = frappe.db.get_all(
             "Sales Activity Monitoring",
             filters={"sales_visit_plan_item": ["in", visit_item_names]},
-            fields=["sales_visit_plan_item", "checkin_time", "checkout_time"]
+            fields=["sales_visit_plan_item", "checkin_time", "checkout_time", "duration", "map_link", "image_link", "latitude", "longitude"]
         )
 
-        activity_times = {}
+        activity_details = {}
         for doc in activity_docs:
-            activity_times[doc.sales_visit_plan_item] = {
+            activity_details[doc.sales_visit_plan_item] = {
                 "checkin_time": doc.checkin_time,
-                "checkout_time": doc.checkout_time
+                "checkout_time": doc.checkout_time,
+                "duration": doc.duration,
+                "map_link": doc.map_link,
+                "image_link": doc.image_link,
+                "latitude": doc.latitude,
+                "longitude": doc.longitude
             }
 
         processed_items = []
@@ -87,8 +93,7 @@ def get_sales_visit_plans(date=None, limit_start=0, limit_page_length=5):
             planned_date = plan_dates.get(parent_name)
             visit_time = processed_item.get('visit_time')
             
-            # Add parent docstatus to the item
-            processed_item['parent_docstatus'] = plan_statuses.get(parent_name, 0) # Default to Draft
+            processed_item['parent_docstatus'] = plan_statuses.get(parent_name, 0)
 
             if planned_date and visit_time:
                 processed_item['planned_visit_time'] = f"{frappe.utils.format_date(planned_date, 'dd-MM-yyyy')} {frappe.utils.format_time(visit_time, 'HH:mm')}"
@@ -97,14 +102,18 @@ def get_sales_visit_plans(date=None, limit_start=0, limit_page_length=5):
             else:
                 processed_item['planned_visit_time'] = visit_time or ''
 
-            activities = activity_times.get(item.name, {})
+            activities = activity_details.get(item.name, {})
             checkin_time = activities.get('checkin_time')
             checkout_time = activities.get('checkout_time')
 
             if checkin_time:
-                processed_item['checkin_time'] = frappe.utils.format_datetime(checkin_time, 'dd/MM/yy HH:mm:ss')
+                dt_obj = frappe.utils.get_datetime(checkin_time)
+                processed_item['checkin_time'] = dt_obj.strftime('%d-%m-%Y %H:%M:%S')
             if checkout_time:
-                processed_item['checkout_time'] = frappe.utils.format_datetime(checkout_time, 'dd/MM/yy HH:mm:ss')
+                dt_obj = frappe.utils.get_datetime(checkout_time)
+                processed_item['checkout_time'] = dt_obj.strftime('%d-%m-%Y %H:%M:%S')
+
+            processed_item.update(activities)
 
             processed_item['sort_key_date'] = planned_date or frappe.utils.getdate('1900-01-01')
             processed_item['sort_key_time'] = visit_time or '00:00:00'
@@ -112,20 +121,20 @@ def get_sales_visit_plans(date=None, limit_start=0, limit_page_length=5):
             if 'visit_time' in processed_item:
                 del processed_item['visit_time']
             
-
             processed_items.append(processed_item)
 
         processed_items.sort(key=lambda x: (STATUS_ORDER.get(x.get('status', 'Draft'), 99), x['sort_key_date'], x['sort_key_time']))
 
         limit_start = int(limit_start)
         limit_page_length = int(limit_page_length)
+        total_items = len(processed_items)
         paginated_items = processed_items[limit_start : limit_start + limit_page_length]
 
         for item in paginated_items:
             del item['sort_key_date']
             del item['sort_key_time']
 
-        return paginated_items
+        return {"data": paginated_items, "total": total_items}
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Error in get_sales_visit_plans")
@@ -139,79 +148,89 @@ STATUS_ORDER = {
     "Draft": 4,
 }
 
-
-
-import frappe
-from frappe.utils.file_manager import save_file # Import save_file
+from frappe.utils.file_manager import save_file
 
 @frappe.whitelist()
-def submit_visit_update(name, new_status, latitude=None, longitude=None, photo=None):
+def submit_visit_update(name, new_status, latitude=None, longitude=None, photo=None, checkout_time=None):
     try:
         doc = frappe.get_doc("Sales Visit Plan Item", name)
         parent_doc = frappe.get_doc("Sales Visit Plan", doc.parent)
-
+        
         photo_url = None
-        if photo: # Check if photo is provided as an argument
+
+        if photo:
             file_doc = save_file(photo.filename, photo.stream.read(), "Sales Activity Monitoring", name)
             photo_url = file_doc.file_url
-        elif frappe.request.files: # Fallback for file uploads via request.files
+            
+        elif frappe.request.files:
             files = frappe.request.files.getlist("photo")
             if files:
                 file_doc = save_file(files[0].filename, files[0].stream.read(), "Sales Activity Monitoring", name)
-                photo_url = file_doc.file_url
+                photo_url = file_doc.file_url 
 
         if new_status == "Checked In":
             doc.status = "Checked In"
             
             activity = frappe.new_doc("Sales Activity Monitoring")
-            activity.sales_person = parent_doc.sales_person
-            activity.employee_name = frappe.db.get_value("Employee", parent_doc.sales_person, "employee_name")
+            employee_id = parent_doc.sales_person
+            activity.sales_person = employee_id
+            employee_name = frappe.db.get_value("Employee", employee_id, "employee_name")
+            activity.employee_name = employee_name
             activity.customer = doc.customer
             activity.sales_visit_plan_item = name
             activity.checkin_time = now_datetime()
             activity.status = "Checked In"
             activity.notes = doc.notes
+            
             if parent_doc.planned_visit_date and doc.visit_time:
                 activity.plan_date_time = f"{parent_doc.planned_visit_date} {doc.visit_time}"
 
             if latitude and longitude:
-                activity.map_link = f"https://www.google.com/maps?q={latitude},{longitude}"
+                activity.map_link = f"https://www.openstreetmap.org/?mlat={latitude}&mlon={longitude}#map=15/{latitude}/{longitude}"
                 activity.latitude = latitude
                 activity.longitude = longitude
             
-
-            activity.insert(ignore_permissions=True)
+            try:
+                activity.insert(ignore_permissions=True)
+            except Exception as e:
+                frappe.log_error(frappe.get_traceback(), "Kesalahan saat Insert Sales Activity")
+                frappe.throw(f"Gagal menyimpan aktivitas : {e}")
 
         elif new_status == "Completed":
             doc.status = "Completed"
-
-            activity_name = frappe.db.get_value("Sales Activity Monitoring", {"sales_visit_plan_item": name}, "name")
-            if activity_name:
+            
+            activities = frappe.get_all(
+                "Sales Activity Monitoring",
+                filters={"sales_visit_plan_item": name, "status": "Checked In"},
+                fields=["name"]
+            )
+            
+            if activities:
+                activity_name = activities[0].name
                 activity = frappe.get_doc("Sales Activity Monitoring", activity_name)
-                activity.checkout_time = now_datetime()
+                
+                if checkout_time:
+                    activity.checkout_time = frappe.utils.get_datetime(checkout_time)
+                else:
+                    activity.checkout_time = now_datetime()
+                
                 activity.status = "Completed"
                 
-                if photo_url: # Update image_link on checkout if photo is provided
+                if photo_url:
                     activity.image_link = photo_url
                 
-                if latitude and longitude: # Update map_link and lat/lon on checkout if provided
-                    activity.map_link = f"https://www.google.com/maps?q={latitude},{longitude}"
+                if latitude and longitude:
+                    activity.map_link = f"https://www.openstreetmap.org/?mlat={latitude}&mlon={longitude}#map=15/{latitude}/{longitude}"
                     activity.latitude = latitude
                     activity.longitude = longitude
 
                 if activity.checkin_time and activity.checkout_time:
-                    checkin = get_datetime(activity.checkin_time)
-                    checkout = get_datetime(activity.checkout_time)
-                    duration_seconds = (checkout - checkin).total_seconds()
+                    duration_seconds = (activity.checkout_time - activity.checkin_time).total_seconds()
                     activity.duration = round(duration_seconds / 60)
                 
-                if photo_url: # Save image_link on check-in if photo is provided
-                    activity.image_link = photo_url
-
                 activity.save(ignore_permissions=True)
             else:
-                frappe.log_error("Could not find matching Sales Activity Monitoring doc for checkout.", f"Sales Visit Plan Item: {name}")
-
+                frappe.log_error("Could not find a 'Checked In' Sales Activity Monitoring doc for checkout.", f"Sales Visit Plan Item: {name}")
 
         doc.flags.ignore_validate_update_after_submit = True
         doc.save(ignore_permissions=True)
@@ -220,25 +239,19 @@ def submit_visit_update(name, new_status, latitude=None, longitude=None, photo=N
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Error in submit_visit_update")
         return {"status": "error", "message": str(e)}
-
+    
+    
 @frappe.whitelist()
 def get_order_history(store_name):
     try:
         raw_orders = frappe.db.get_list(
             "Sales Order",
-            filters={
-                "customer_name": store_name
-            },
-            fields=[
-                "name as order_id",
-                "transaction_date as date",
-                "grand_total as total"
-            ],
+            filters={"customer_name": store_name},
+            fields=["name as order_id", "transaction_date as date", "grand_total as total"],
             order_by="transaction_date desc",
             limit=5
         )
-        orders = [dict(d) for d in raw_orders]
-        return orders
+        return [dict(d) for d in raw_orders]
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Error in get_order_history")
         frappe.throw(f"Failed to fetch order history: {e}")
@@ -246,8 +259,7 @@ def get_order_history(store_name):
 @frappe.whitelist(allow_guest=True)
 def get_employee_id(user_id):
     try:
-        employee = frappe.db.get_value("Employee", {"user_id": user_id}, "name")
-        return employee
+        return frappe.db.get_value("Employee", {"user_id": user_id}, "name")
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Error in get_employee_id")
         frappe.throw(f"Failed to fetch employee ID: {e}")
@@ -263,13 +275,15 @@ def get_current_user_id():
 @frappe.whitelist(allow_guest=True)
 def get_sales_activity_history(from_date=None, to_date=None, customer=None):
     try:
-        sales_person = frappe.db.get_value("Employee", {"user_id": frappe.session.user}, "name")
-        if not sales_person:
+        employee_id = frappe.db.get_value("Employee", {"user_id": frappe.session.user}, "name")
+        if not employee_id:
             frappe.throw("Employee ID not found for current user.")
 
-        filters = {
-            "sales_person": sales_person
-        }
+        sales_person_id = frappe.db.get_value("Sales Person", {"employee": employee_id}, "name")
+        if not sales_person_id:
+            frappe.throw(f"Could not find linked Sales Person for Employee: {employee_id}")
+
+        filters = [["sales_person", "in", [sales_person_id, employee_id]]]
 
         if from_date:
             from_date = getdate(from_date)
@@ -277,25 +291,19 @@ def get_sales_activity_history(from_date=None, to_date=None, customer=None):
             to_date = getdate(to_date)
 
         if from_date and to_date:
-            filters["checkin_time"] = ["between", (from_date, to_date)]
+            filters.append(["checkin_time", "between", (from_date, to_date)])
         elif from_date:
-            filters["checkin_time"] = [">=", from_date]
+            filters.append(["checkin_time", ">=", from_date])
         elif to_date:
-            filters["checkin_time"] = ["<=", to_date]
+            filters.append(["checkin_time", "<=", to_date])
 
         if customer:
-            filters["customer"] = ["like", f"%{customer}%"]
+            filters.append(["customer", "like", f"%{customer}%"])
 
         raw_activities = frappe.db.get_list(
             "Sales Activity Monitoring",
             filters=filters,
-            fields=[
-                "checkin_time",
-                "checkout_time",
-                "customer",
-                "duration",
-                "status"
-            ],
+            fields=["checkin_time", "checkout_time", "customer", "duration", "status"],
             order_by="checkin_time desc"
         )
 
@@ -303,10 +311,10 @@ def get_sales_activity_history(from_date=None, to_date=None, customer=None):
         for d in raw_activities:
             activity = dict(d)
             formatted_activity = {
-                "Date": frappe.utils.format_date(activity.get("checkin_time")) if activity.get("checkin_time") else None,
+                "Date": frappe.utils.format_date(activity.get("checkin_time")) if activity.get("checkin_time") else "",
                 "Customer": activity.get("customer"),
-                "Checkin": frappe.utils.format_time(activity.get("checkin_time")) if activity.get("checkin_time") else None,
-                "Checkout": frappe.utils.format_time(activity.get("checkout_time")) if activity.get("checkout_time") else None,
+                "Checkin": frappe.utils.format_time(activity.get("checkin_time")) if activity.get("checkin_time") else "",
+                "Checkout": frappe.utils.format_time(activity.get("checkout_time")) if activity.get("checkout_time") else "",
                 "Duration": activity.get("duration", 0),
                 "Status": activity.get("status")
             }
@@ -322,71 +330,63 @@ def get_dashboard_data():
     sales_person = None
     today_date = frappe.utils.today()
     try:
-        # Get the sales person for the current user
-        sales_person = frappe.db.get_value("Employee", {"user_id": frappe.session.user}, "name")
-        if not sales_person:
+        employee_id = frappe.db.get_value("Employee", {"user_id": frappe.session.user}, "name")
+        if not employee_id:
             return {"status": "error", "message": "Employee not found for the current user."}
+
+        sales_person = frappe.db.get_value("Sales Person", {"employee": employee_id}, "name")
+        if not sales_person:
+            frappe.throw(f"Could not find linked Sales Person for Employee: {employee_id}")
 
         # Get all parent Sales Visit Plan names for today
         today_parent_plans = frappe.db.get_list(
             "Sales Visit Plan",
-            filters={"sales_person": sales_person, "planned_visit_date": today_date},
+            filters=[
+                ["sales_person", "in", [sales_person, employee_id]],
+                ["planned_visit_date", "=", today_date]
+            ],
             fields=["name"]
         )
         parent_plan_name_list = [p.name for p in today_parent_plans] if today_parent_plans else []
 
-        # Get all parent Sales Visit Plan names for the sales person (all dates)
-        all_parent_plans = frappe.db.get_list(
-            "Sales Visit Plan",
-            filters={"sales_person": sales_person},
-            fields=["name"]
-        )
-        parent_plan_all_names = [p.name for p in all_parent_plans] if all_parent_plans else []
-
-        total_visits = 0
-        completed_visits = 0
-        pending_visits = 0 # Inisialisasi
-
+        total_visits_today = 0
+        completed_visits_today = 0
+        
         if parent_plan_name_list:
-            # Get total visits for today (Draft, NULL, or Planned for today's plan)
-            total_visits = frappe.db.count(
+            total_visits_today = frappe.db.count(
+                "Sales Visit Plan Item",
+                filters=[["parent", "in", parent_plan_name_list]]
+            )
+            completed_visits_today = frappe.db.count(
                 "Sales Visit Plan Item",
                 filters=[
                     ["parent", "in", parent_plan_name_list],
-                    ["status", "in", ["", " ", "Draft", "Planned"]]
+                    ["status", "=", "Completed"]
                 ]
             )
+
+        # Get pending visits (Outstanding Visit) across all plans for the user
+        all_parent_plans = frappe.db.get_all("Sales Visit Plan", filters={"sales_person": sales_person}, fields=["name"])
+        all_parent_plan_names = [p.name for p in all_parent_plans]
         
-        if parent_plan_all_names:
-            # Get completed visits (all completed for this sales person across all plans)
-            completed_visits = frappe.db.count(
-                "Sales Visit Plan Item",
-                filters={"parent": ["in", parent_plan_all_names], "status": "Completed"}
-            )
-            # Get pending visits (Outstanding Visit) (Draft, NULL, or Planned for this sales person across all plans)
+        pending_visits = 0
+        if all_parent_plan_names:
             pending_visits = frappe.db.count(
                 "Sales Visit Plan Item",
                 filters=[
-                    ["parent", "in", parent_plan_all_names],
-                    ["status", "in", ["", " ", "Draft", "Planned"]]
+                    ["parent", "in", all_parent_plan_names],
+                    ["status", "in", ["", " ", "Draft", "Planned", "Checked In"]]
                 ]
             )
 
-
-        # Calculate Achievement Percentage (Pencapaian)
-        achievement_percentage = 0
-        if total_visits > 0:
-            achievement_percentage = (completed_visits / total_visits) * 100
+        achievement_percentage = (completed_visits_today / total_visits_today) * 100 if total_visits_today > 0 else 0
 
         return {
             "status": "success",
-            "total_visits_today": total_visits,
-            "completed_visits_today": completed_visits,
+            "total_visits_today": total_visits_today,
+            "completed_visits_today": completed_visits_today,
             "pending_visits": pending_visits,
-            # "total_sales_month": total_sales_month,
-            # "total_outstanding_sales": total_outstanding_sales,
             "achievement_percentage": achievement_percentage,
-            "test":parent_plan_all_names # Changed from parent_plan_all
         }
 
     except Exception as e:
@@ -396,75 +396,66 @@ def get_dashboard_data():
 @frappe.whitelist(allow_guest=True)
 def get_weekly_visit_sales_comparison_data():
     try:
-        sales_person = frappe.db.get_value("Employee", {"user_id": frappe.session.user}, "name")
-        if not sales_person:
+        # Get the Employee ID for the current logged-in user.
+        employee_id = frappe.db.get_value("Employee", {"user_id": frappe.session.user}, "name")
+        if not employee_id:
             return {"status": "error", "message": "Employee not found for the current user."}
+        
+        # Log the found Employee ID for debugging purposes
+        frappe.log(f"Debug: Found Employee ID: {employee_id}")
 
         today = get_datetime(frappe.utils.today())
-        
         weekly_data = {}
 
         for i in range(8): # Last 8 weeks
             week_start = get_first_day_of_week(add_days(today, -7 * i))
-            week_end = get_last_day_of_week(add_days(today, -7 * i))
-            week_label = f"{week_start.strftime('%Y-%m-%d')} to {week_end.strftime('%Y-%m-%d')}"
+            
+            week_number = week_start.isocalendar()[1]
+            week_label = f"Minggu ke-{week_number}"
 
-            # Get total visits for the week
-            visits_in_week = 0
-            plan_in_week = 0
-            frappe.log_error(f"get_weekly_visit_sales_comparison_data: Querying Sales Visit Plan for sales_person: {sales_person}, week: {week_label}", "Sales Person Debug")
+            # Filter now uses the 'employee' field directly, as per the correct doctype setup.
             parent_plans_in_week = frappe.db.get_list(
                 "Sales Visit Plan",
                 filters={
-                    "sales_person": sales_person,
-                    "planned_visit_date": ["between", [week_start, week_end]],
-                    "docstatus": 1  # Only submitted plans
+                    "sales_person": employee_id,  # CORRECTED FILTER
+                    "planned_visit_date": ["between", [week_start, add_days(week_start, 6)]]
                 },
                 fields=["name"]
             )
-            for plan in parent_plans_in_week:
-                frappe.log_error(f"get_weekly_visit_sales_comparison_data: Querying Sales Visit Plan Item for parent: {plan.name}", "Sales Person Debug")
-                visits_in_week += frappe.db.count(
+            frappe.log(f"Debug: Week {week_start}, Plans: {parent_plans_in_week}")
+            plan_names_in_week = [p.name for p in parent_plans_in_week]
+            
+            planned_in_week = 0
+            completed_in_week = 0
+
+            if plan_names_in_week:
+                planned_in_week = frappe.db.count(
                     "Sales Visit Plan Item",
-                    filters={"parent": plan.name, "status": "Completed"}  # Exclude completed items
+                    filters={"parent": ["in", plan_names_in_week]}
                 )
-            # plan visit
-            for plan in parent_plans_in_week:
-                frappe.log_error(f"get_weekly_visit_sales_comparison_data: Querying Sales Visit Plan Item for parent: {plan.name}", "Sales Person Debug")
-                plan_in_week += frappe.db.count(
+                completed_in_week = frappe.db.count(
                     "Sales Visit Plan Item",
-                    filters={"parent": plan.name}#, "status":["not in",["Checked In","Completed"]]}  # Exclude completed items
+                    filters={
+                        "parent": ["in", plan_names_in_week],
+                        "status": "Completed"
+                    }
                 )
-            # Get total sales for the week
-            # frappe.log_error(f"get_weekly_visit_sales_comparison_data: Querying Sales Order for sales_person: {sales_person}, week: {week_label}", "Sales Person Debug")
-            # sales_in_week = frappe.db.get_value(
-            #     "Sales Order",
-            #     filters={
-            #         "sales_person": sales_person,
-            #         "transaction_date": ["between", [week_start, week_end]],
-            #         "docstatus": 1 # Only submitted orders
-            #     },
-            #     fieldname="SUM(grand_total)"
-            # ) or 0
-            sales_in_week = 0
+
             weekly_data[week_label] = {
-                "plan" : plan_in_week,
-                "visits": visits_in_week,
-                "sales": sales_in_week
+                "planned": planned_in_week,
+                "completed": completed_in_week
             }
         
-        # Format data for chart (e.g., labels, datasets)
         labels = list(weekly_data.keys())
-        visits_data = [weekly_data[label]["visits"] for label in labels]
-        sales_data = [weekly_data[label]["sales"] for label in labels]
-        plan_data = [weekly_data[label]["plan"] for label in labels]
+        planned_data = [weekly_data[label]["planned"] for label in labels]
+        completed_data = [weekly_data[label]["completed"] for label in labels]
+        
         return {
             "status": "success",
             "labels": labels,
             "datasets": [
-                {"label":"Plan","data":plan_data},
-                {"label": "Visits", "data": visits_data},
-                #{"label": "Sales", "data": sales_data}
+                {"label": "Planned", "data": planned_data},
+                {"label": "Completed", "data": completed_data},
             ]
         }
 
@@ -475,9 +466,13 @@ def get_weekly_visit_sales_comparison_data():
 @frappe.whitelist(allow_guest=True)
 def get_weekly_customer_order_data():
     try:
-        sales_person = frappe.db.get_value("Employee", {"user_id": frappe.session.user}, "name")
-        if not sales_person:
+        employee_id = frappe.db.get_value("Employee", {"user_id": frappe.session.user}, "name")
+        if not employee_id:
             return {"status": "error", "message": "Employee not found for the current user."}
+
+        sales_person = frappe.db.get_value("Sales Person", {"employee": employee_id}, "name")
+        if not sales_person:
+            frappe.throw(f"Could not find linked Sales Person for Employee: {employee_id}")
 
         today = get_datetime(frappe.utils.today())
         
@@ -486,15 +481,14 @@ def get_weekly_customer_order_data():
         for i in range(8): # Last 8 weeks
             week_start = get_first_day_of_week(add_days(today, -7 * i))
             week_end = get_last_day_of_week(add_days(today, -7 * i))
-            week_label = f"{week_start.strftime('%Y-%m-%d')} to {week_end.strftime('%Y-%m-%d')}"
+            week_label = f"Minggu ke-{week_start.isocalendar()[1]}"
 
-            frappe.log_error(f"get_weekly_customer_order_data: Querying Sales Order for sales_person: {sales_person}, week: {week_label}", "Sales Person Debug")
             orders_in_week = frappe.db.get_list(
                 "Sales Order",
                 filters={
                     "sales_person": sales_person,
                     "transaction_date": ["between", [week_start, week_end]],
-                    "docstatus": 1 # Only submitted orders
+                    "docstatus": 1
                 },
                 fields=["customer_name", "grand_total"]
             )
@@ -511,15 +505,21 @@ def get_weekly_customer_order_data():
                 
                 customer_weekly_orders[week_label][customer_name] += grand_total
         
-        # Format data for table grid
         formatted_data = []
+        all_customers = set()
+        for week_data in customer_weekly_orders.values():
+            for customer in week_data.keys():
+                all_customers.add(customer)
+        
+        sorted_customers = sorted(list(all_customers))
+
         for week_label, customers_data in customer_weekly_orders.items():
             row = {"week": week_label}
-            for customer, total_sales in customers_data.items():
-                row[customer] = total_sales
+            for customer in sorted_customers:
+                row[customer] = customers_data.get(customer, 0)
             formatted_data.append(row)
 
-        return {"status": "success", "data": formatted_data}
+        return {"status": "success", "data": formatted_data, "customers": sorted_customers}
 
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Error in get_weekly_customer_order_data")
@@ -533,14 +533,15 @@ def get_sales_activity_monitoring_data(sales_person=None, customer=None, from_da
         if sales_person:
             filters["sales_person"] = sales_person
         else:
-            # If no sales_person is provided, default to current user's sales_person
-            current_sales_person = frappe.db.get_value("Employee", {"user_id": frappe.session.user}, "name")
-            if current_sales_person:
-                filters["sales_person"] = current_sales_person
+            employee_id = frappe.db.get_value("Employee", {"user_id": frappe.session.user}, "name")
+            if employee_id:
+                sales_person_id = frappe.db.get_value("Sales Person", {"employee": employee_id}, "name")
+                possible_ids = [employee_id]
+                if sales_person_id and sales_person_id not in possible_ids:
+                    possible_ids.append(sales_person_id)
+                filters["sales_person"] = ["in", possible_ids]
             else:
-                # If no sales_person is provided and current user is not an employee, return empty list
                 return []
-
 
         if from_date:
             from_date = getdate(from_date)
@@ -548,7 +549,7 @@ def get_sales_activity_monitoring_data(sales_person=None, customer=None, from_da
             to_date = getdate(to_date)
 
         if from_date and to_date:
-            filters["checkin_time"] = ["between", (from_date, to_date)] # Filter by checkin_time
+            filters["checkin_time"] = ["between", (from_date, to_date)]
         elif from_date:
             filters["checkin_time"] = [">=", from_date]
         elif to_date:
@@ -557,38 +558,22 @@ def get_sales_activity_monitoring_data(sales_person=None, customer=None, from_da
         if customer:
             filters["customer"] = customer
 
-        frappe.log_error(f"get_sales_activity_monitoring_data: Querying Sales Activity Monitoring with filters: {filters}", "Sales Activity Monitoring Debug")
         raw_activities = frappe.db.get_list(
-            "Sales Activity Monitoring", # Querying Sales Activity Monitoring DocType
+            "Sales Activity Monitoring",
             filters=filters,
             fields=[
-                "name", # ID
-                "employee_name", # Sales Name
-                "customer", # Customer Name
-                "plan_date_time", # Plan Date
-                "checkin_time", # Visit Date (Checkin)
-                "checkout_time", # Visit Date (Checkout)
-                "duration", # Duration (already calculated in DocType)
-                "image_link", # Photo
-                "map_link", # Map
-                "latitude", # For Map View
-                "longitude", # For Map View
-                "status", # Status
+                "name", "employee_name", "customer", "plan_date_time", "checkin_time", 
+                "checkout_time", "duration", "image_link", "map_link", "latitude", 
+                "longitude", "status"
             ],
-            order_by="checkin_time desc" # Order by checkin_time
+            order_by="checkin_time desc"
         )
 
         activities = []
         for d in raw_activities:
             activity = dict(d)
-
-            # Fetch customer address for hover
             customer_address = frappe.db.get_value("Customer", activity.get("customer"), "primary_address")
-            if customer_address:
-                activity["customer_address"] = customer_address.replace('<br>', ' ').replace('<br/>', ' ') # Clean up address
-            else:
-                activity["customer_address"] = ""
-
+            activity["customer_address"] = customer_address.replace('<br>', ' ').replace('<br/>', ' ') if customer_address else ""
             activities.append(activity)
 
         return activities
@@ -599,26 +584,18 @@ def get_sales_activity_monitoring_data(sales_person=None, customer=None, from_da
 @frappe.whitelist()
 def create_sales_visit_plan(sales_visit_plan_data):
     try:
-        # 1. Buat dokumen Sales Visit Plan baru
         doc = frappe.new_doc("Sales Visit Plan")
-
-        # 2. Set bidang parent
         doc.sales_person = sales_visit_plan_data.get("sales_person")
         doc.planned_visit_date = sales_visit_plan_data.get("planned_visit_date")
-        # Frappe akan menangani naming_series dan status default (Draft) secara otomatis
 
-        # 3. Tambahkan entri child table
         for item_data in sales_visit_plan_data.get("visit_plan_details", []):
-            child_doc = doc.append("visit_plan_details", {})
-            child_doc.customer = item_data.get("customer")
-            child_doc.address = item_data.get("address")
-            child_doc.visit_time = item_data.get("visit_time")
-            child_doc.notes = item_data.get("notes")
-            # Status for child items is not explicitly passed from frontend as per new requirements,
-            # but if it were, it would be set here. For now, it will default in Frappe.
-            # child_doc.status = item_data.get("status")
+            doc.append("visit_plan_details", {
+                "customer": item_data.get("customer"),
+                "address": item_data.get("address"),
+                "visit_time": item_data.get("visit_time"),
+                "notes": item_data.get("notes"),
+            })
 
-        # 4. Sisipkan dokumen
         doc.insert()
         frappe.db.commit()
 
