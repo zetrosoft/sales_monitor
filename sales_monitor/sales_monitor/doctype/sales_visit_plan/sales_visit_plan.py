@@ -23,7 +23,6 @@ class SalesVisitPlan(Document):
         self.status = "Cancelled"
 
     def on_submit(self):
-        frappe.msgprint("on_submit called")
         # Set the status to Planned after successful submission
         self.status = "Planned"
         for item in self.visit_plan_details:
