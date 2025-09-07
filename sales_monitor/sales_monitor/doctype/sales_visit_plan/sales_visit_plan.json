@@ -100,7 +100,7 @@
  "links": [],
  "modified": "2025-09-04 16:27:01.998519",
  "modified_by": "Administrator",
- "module": "Sales Monitor",
+ "module": "sales_monitor",
  "name": "Sales Visit Plan",
  "naming_rule": "By \"Naming Series\" field",
  "owner": "Administrator",

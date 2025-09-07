@@ -11,47 +11,15 @@ app_include_js = ["/assets/sales_monitor/js/sales_activity_monitoring.js"]
 
 # Doctype Specific Customizations
 doctype_js = {
-    "Sales Visit Plan": "sales_monitor/doctype/sales_visit_plan/sales_visit_plan.js",
-    "Sales Activity Monitoring": "sales_monitor/doctype/sales_activity_monitoring/sales_activity_monitoring_form.js"
+    "Sales Visit Plan": "sales_monitor/sales_monitor/doctype/sales_visit_plan/sales_visit_plan.js",
 }
 
 doctype_list_js = {
-    "Sales Visit Plan": "sales_monitor/doctype/sales_visit_plan/sales_visit_plan_list.js",
-    "Sales Activity Monitoring": "public/js/sales_activity_monitoring.js"
+    "Sales Visit Plan": "sales_monitor/sales_monitor/doctype/sales_visit_plan/sales_visit_plan_list.js",
+
 }
 
-fixtures = [
-    {
-        "doctype": "DocType",
-        "filters": {
-            "name": "Sales Activity Monitoring"
-        }
-    }
-]
-
-# Fixtures for Data Export/Import (Dinonaktifkan sesuai permintaan)
-# fixtures = [
-#     {
-#         "doctype": "Workspace",
-#         "filters": {
-#             "name": "Sales Monitor"
-#         }
-#     },
-#     {
-#         "doctype": "DocType",
-#         "filters": {
-#             "name": ["in", [
-#                 "Sales Activity Log", 
-#                 "Sales Visit Plan",
-#             ]]
-#         }
-#     }
-# ]
+fixtures = ["Workspace"]
 
 # Other Hooks
 # desktop_icons = "sales_monitor.config.desktop.get_data"
-# module_categories = {"Sales Monitor": "Selling"}
-# whitelisted_methods = [
-#     "sales_monitor.api.update_activity_from_pwa",
-#     "sales_monitor.api.login"
-# ]

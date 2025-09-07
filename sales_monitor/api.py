@@ -604,3 +604,32 @@ def create_sales_visit_plan(sales_visit_plan_data):
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Error in create_sales_visit_plan")
         return {"status": "error", "message": str(e)}
+
+@frappe.whitelist()
+def get_customer_master_location(customer):
+    """
+    Fetches the latitude and longitude from the very first recorded visit
+    for a given customer to be used as the 'master' location.
+    """
+    if not customer:
+        return None
+
+    first_visit = frappe.db.get_list(
+        "Sales Activity Monitoring",
+        filters={
+            "customer": customer,
+            "latitude": ["!=", 0],
+            "longitude": ["!=", 0],
+        },
+        fields=["latitude", "longitude"],
+        order_by="creation asc",
+        limit=1,
+    )
+
+    if first_visit:
+        return {
+            "latitude": first_visit[0].get("latitude"),
+            "longitude": first_visit[0].get("longitude"),
+        }
+    
+    return None

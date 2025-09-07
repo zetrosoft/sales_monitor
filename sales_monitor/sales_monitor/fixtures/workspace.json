@@ -1,0 +1,27 @@
+[
+    {
+        "doctype": "Workspace",
+        "name": "Sales Monitor",
+        "title": "Sales Monitor",
+        "module": "sales_monitor",
+        "label": "sales_monitor",
+        "public": 1,
+        "is_standard": 1,
+        "sequence_id": 1,
+        "content": "[]",
+        "links": [
+            {
+                "hidden": 0,
+                "label": "Sales Visit Plan",
+                "type": "DocType",
+                "link_to": "Sales Visit Plan"
+            },
+            {
+                "hidden": 0,
+                "label": "Sales Activity Monitoring",
+                "type": "DocType",
+                "link_to": "Sales Activity Monitoring"
+            }
+        ]
+    }
+]
