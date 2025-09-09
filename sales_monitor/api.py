@@ -631,10 +631,4 @@ def get_customer_master_location(customer):
             "latitude": first_visit[0].get("latitude"),
             "longitude": first_visit[0].get("longitude"),
         }
-    
-    return Noneurn {
-            "latitude": first_visit[0].get("latitude"),
-            "longitude": first_visit[0].get("longitude"),
-        }
-    
     return None
