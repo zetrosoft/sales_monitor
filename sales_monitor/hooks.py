@@ -19,7 +19,7 @@ doctype_list_js = {
 
 }
 
-fixtures = ["Workspace"]
+#fixtures = ["Workspace"]
 
 # Other Hooks
 # desktop_icons = "sales_monitor.config.desktop.get_data"
