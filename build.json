@@ -1,8 +1,0 @@
-{
-  "sales_monitor.min.js": [
-    "sales_monitor/public/js/sales_activity_monitoring.js"
-  ],
-  "sales_monitor.min.css": [
-    "sales_monitor/public/css/sales_monitor.css"
-  ]
-}

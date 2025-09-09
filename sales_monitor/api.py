@@ -336,7 +336,7 @@ def get_dashboard_data():
 
         sales_person = frappe.db.get_value("Sales Person", {"employee": employee_id}, "name")
         if not sales_person:
-            frappe.throw(f"Could not find linked Sales Person for Employee: {employee_id}")
+            return {"status": "error", "message": f"Akun Anda belum terhubung dengan profil Sales Person. Hubungi administrator untuk menautkan Employee ID: {employee_id}."}
 
         # Get all parent Sales Visit Plan names for today
         today_parent_plans = frappe.db.get_list(
@@ -472,7 +472,7 @@ def get_weekly_customer_order_data():
 
         sales_person = frappe.db.get_value("Sales Person", {"employee": employee_id}, "name")
         if not sales_person:
-            frappe.throw(f"Could not find linked Sales Person for Employee: {employee_id}")
+            return {"status": "error", "message": f"Akun Anda belum terhubung dengan profil Sales Person. Hubungi administrator untuk menautkan Employee ID: {employee_id}."}
 
         today = get_datetime(frappe.utils.today())
         
@@ -628,6 +628,11 @@ def get_customer_master_location(customer):
 
     if first_visit:
         return {
+            "latitude": first_visit[0].get("latitude"),
+            "longitude": first_visit[0].get("longitude"),
+        }
+    
+    return Noneurn {
             "latitude": first_visit[0].get("latitude"),
             "longitude": first_visit[0].get("longitude"),
         }
