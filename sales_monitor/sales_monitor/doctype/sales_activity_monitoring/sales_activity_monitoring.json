@@ -64,6 +64,7 @@
   {
    "fieldname": "image_link",
    "fieldtype": "Attach Image",
+   "in_list_view": 1,
    "label": "Photo"
   },
   {
@@ -119,7 +120,7 @@
   }
  ],
  "links": [],
- "modified": "2025-09-04 11:33:25.227121",
+ "modified": "2025-09-11 14:08:37.867226",
  "modified_by": "Administrator",
  "module": "sales_monitor",
  "name": "Sales Activity Monitoring",

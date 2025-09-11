@@ -7,7 +7,7 @@ app_license = "MIT"
 
 # App-level Includes
 #app_include_css = "/assets/sales_monitor/css/sales_monitor.css"
-app_include_js = ["/assets/sales_monitor/js/sales_activity_monitoring.js"]
+# # app_include_js = ["/assets/sales_monitor/js/sales_activity_monitoring.js"]
 
 # Doctype Specific Customizations
 doctype_js = {
@@ -16,7 +16,7 @@ doctype_js = {
 
 doctype_list_js = {
     "Sales Visit Plan": "sales_monitor/sales_monitor/doctype/sales_visit_plan/sales_visit_plan_list.js",
-
+    "Sales Activity Monitoring":"sales_monitor/sales_monitor/sales_monitor/doctype/sales_activity_monitoring/sales_activity_monitoring.js"
 }
 
 #fixtures = ["Workspace"]
