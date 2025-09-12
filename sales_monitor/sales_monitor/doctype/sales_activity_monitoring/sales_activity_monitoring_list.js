@@ -8,29 +8,31 @@ frappe.listview_settings['Sales Activity Monitoring'] = {
             args: args
         });
     },
+    
     onload: function(listview) {
         // Memastikan bidang-bidang ini diambil untuk ditampilkan dan diformat
-        listview.page.add_fields([
-            "name", // Untuk ID
-            "customer",
-            "plan_date_time",
-            "duration",
-            "map_link",
-            "image_link",
-            "status"
-        ]);
+        // listview.page.add_fields([
+        //     "name", // Untuk ID
+        //     "customer",
+        //     "plan_date_time",
+        //     "duration",
+        //     "map_link",
+        //     "image_link",
+        //     "status"
+        // ]);
 
         // Secara eksplisit mengatur kolom yang akan ditampilkan di tampilan daftar
         // Ini akan menimpa kolom default yang diatur oleh in_list_view di DocType JSON
-        listview.page.set_fields([
-            { fieldname: "name", label: "ID", width: "100px" },
-            { fieldname: "customer", label: "Customer", width: "150px" },
-            { fieldname: "plan_date_time", label: "Plan Date", width: "150px" },
-            { fieldname: "duration", label: "Duration", width: "100px" },
-            { fieldname: "map_link", label: "Map", width: "80px" }, // Diformat oleh map_link formatter
-            { fieldname: "image_link", label: "Photo", width: "80px" }, // Diformat oleh image_link formatter
-            { fieldname: "status", label: "Status", width: "100px" }
-        ]);
+        // listview.page.set_fields([
+        //     { fieldname: "name", label: "ID", width: "100px" },
+        //     { fieldname: "customer", label: "Customer", width: "150px" },
+        //     { fieldname: "plan_date_time", label: "Plan Date", width: "150px" },
+        //     { fieldname: "duration", label: "Duration", width: "100px" },
+        //     { fieldname: "map_link", label: "Map", width: "80px" }, // Diformat oleh map_link formatter
+        //     { fieldname: "image_link", label: "Photo", width: "80px" }, // Diformat oleh image_link formatter
+        //     { fieldname: "status", label: "Status", width: "100px" }
+        // ]);
+        
     },
 
     formatters: {
@@ -65,7 +67,7 @@ frappe.listview_settings['Sales Activity Monitoring'] = {
 // Event handlers remain the same
 $(document).on('mouseenter', '.list-row-container .image-thumbnail-wrapper', function(e) {
     if (!frappe.get_route() || frappe.get_route()[1] !== 'Sales Activity Monitoring') return;
-
+    
     const imageUrl = $(this).data('image-url');
     if (imageUrl) {
         // Create and position the popup near the cursor

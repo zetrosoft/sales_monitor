@@ -16,7 +16,7 @@ doctype_js = {
 
 doctype_list_js = {
     "Sales Visit Plan": "sales_monitor/sales_monitor/doctype/sales_visit_plan/sales_visit_plan_list.js",
-    "Sales Activity Monitoring":"sales_monitor/sales_monitor/sales_monitor/doctype/sales_activity_monitoring/sales_activity_monitoring.js"
+    "Sales Activity Monitoring":"sales_monitor/sales_monitor/sales_monitor/doctype/sales_activity_monitoring/sales_activity_monitoring_list.js"
 }
 
 #fixtures = ["Workspace"]
