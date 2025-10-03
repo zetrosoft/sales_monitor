@@ -1,6 +1,16 @@
 import frappe
-from frappe.utils import getdate, now_datetime, get_first_day, get_last_day, get_datetime, add_days, get_first_day_of_week, get_last_day_of_week
 from frappe.auth import LoginManager
+from frappe.utils import (
+    add_days,
+    get_datetime,
+    get_first_day,
+    get_first_day_of_week,
+    get_last_day,
+    get_last_day_of_week,
+    getdate,
+    now_datetime,
+)
+
 
 @frappe.whitelist(allow_guest=True)
 def pwa_login(usr, pwd):
@@ -18,7 +28,7 @@ def pwa_login(usr, pwd):
             "user_id": frappe.session.user,
             "full_name": frappe.session.user_full_name,
             "employee_id": employee_id,
-            "roles": user_roles 
+            "roles": user_roles
         }
     except frappe.exceptions.AuthenticationError:
         return {"status": "error", "message": "Invalid login credentials."}
@@ -64,7 +74,7 @@ def get_sales_visit_plans(date=None, limit_start=0, limit_page_length=5):
         )
 
         visit_item_names = [item['name'] for item in visit_items]
-        
+
         activity_docs = frappe.db.get_all(
             "Sales Activity Monitoring",
             filters={"sales_visit_plan_item": ["in", visit_item_names]},
@@ -92,7 +102,7 @@ def get_sales_visit_plans(date=None, limit_start=0, limit_page_length=5):
             parent_name = processed_item.get("parent")
             planned_date = plan_dates.get(parent_name)
             visit_time = processed_item.get('visit_time')
-            
+
             processed_item['parent_docstatus'] = plan_statuses.get(parent_name, 0)
 
             if planned_date and visit_time:
@@ -118,9 +128,8 @@ def get_sales_visit_plans(date=None, limit_start=0, limit_page_length=5):
             processed_item['sort_key_date'] = planned_date or frappe.utils.getdate('1900-01-01')
             processed_item['sort_key_time'] = visit_time or '00:00:00'
 
-            if 'visit_time' in processed_item:
-                del processed_item['visit_time']
-            
+            processed_item.pop('visit_time', None)
+
             processed_items.append(processed_item)
 
         processed_items.sort(key=lambda x: (STATUS_ORDER.get(x.get('status', 'Draft'), 99), x['sort_key_date'], x['sort_key_time']))
@@ -150,27 +159,28 @@ STATUS_ORDER = {
 
 from frappe.utils.file_manager import save_file
 
+
 @frappe.whitelist()
 def submit_visit_update(name, new_status, latitude=None, longitude=None, photo=None, checkout_time=None):
     try:
         doc = frappe.get_doc("Sales Visit Plan Item", name)
         parent_doc = frappe.get_doc("Sales Visit Plan", doc.parent)
-        
+
         photo_url = None
 
         if photo:
             file_doc = save_file(photo.filename, photo.stream.read(), "Sales Activity Monitoring", name)
             photo_url = file_doc.file_url
-            
+
         elif frappe.request.files:
             files = frappe.request.files.getlist("photo")
             if files:
                 file_doc = save_file(files[0].filename, files[0].stream.read(), "Sales Activity Monitoring", name)
-                photo_url = file_doc.file_url 
+                photo_url = file_doc.file_url
 
         if new_status == "Checked In":
             doc.status = "Checked In"
-            
+
             activity = frappe.new_doc("Sales Activity Monitoring")
             employee_id = parent_doc.sales_person
             activity.sales_person = employee_id
@@ -181,7 +191,7 @@ def submit_visit_update(name, new_status, latitude=None, longitude=None, photo=N
             activity.checkin_time = now_datetime()
             activity.status = "Checked In"
             activity.notes = doc.notes
-            
+
             if parent_doc.planned_visit_date and doc.visit_time:
                 activity.plan_date_time = f"{parent_doc.planned_visit_date} {doc.visit_time}"
 
@@ -189,7 +199,7 @@ def submit_visit_update(name, new_status, latitude=None, longitude=None, photo=N
                 activity.map_link = f"https://www.openstreetmap.org/?mlat={latitude}&mlon={longitude}#map=15/{latitude}/{longitude}"
                 activity.latitude = latitude
                 activity.longitude = longitude
-            
+
             try:
                 activity.insert(ignore_permissions=True)
             except Exception as e:
@@ -198,27 +208,27 @@ def submit_visit_update(name, new_status, latitude=None, longitude=None, photo=N
 
         elif new_status == "Completed":
             doc.status = "Completed"
-            
+
             activities = frappe.get_all(
                 "Sales Activity Monitoring",
                 filters={"sales_visit_plan_item": name, "status": "Checked In"},
                 fields=["name"]
             )
-            
+
             if activities:
                 activity_name = activities[0].name
                 activity = frappe.get_doc("Sales Activity Monitoring", activity_name)
-                
+
                 if checkout_time:
                     activity.checkout_time = frappe.utils.get_datetime(checkout_time)
                 else:
                     activity.checkout_time = now_datetime()
-                
+
                 activity.status = "Completed"
-                
+
                 if photo_url:
                     activity.image_link = photo_url
-                
+
                 if latitude and longitude:
                     activity.map_link = f"https://www.openstreetmap.org/?mlat={latitude}&mlon={longitude}#map=15/{latitude}/{longitude}"
                     activity.latitude = latitude
@@ -227,7 +237,7 @@ def submit_visit_update(name, new_status, latitude=None, longitude=None, photo=N
                 if activity.checkin_time and activity.checkout_time:
                     duration_seconds = (activity.checkout_time - activity.checkin_time).total_seconds()
                     activity.duration = round(duration_seconds / 60)
-                
+
                 activity.save(ignore_permissions=True)
             else:
                 frappe.log_error("Could not find a 'Checked In' Sales Activity Monitoring doc for checkout.", f"Sales Visit Plan Item: {name}")
@@ -239,8 +249,8 @@ def submit_visit_update(name, new_status, latitude=None, longitude=None, photo=N
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Error in submit_visit_update")
         return {"status": "error", "message": str(e)}
-    
-    
+
+
 @frappe.whitelist()
 def get_order_history(store_name):
     try:
@@ -351,7 +361,7 @@ def get_dashboard_data():
 
         total_visits_today = 0
         completed_visits_today = 0
-        
+
         if parent_plan_name_list:
             total_visits_today = frappe.db.count(
                 "Sales Visit Plan Item",
@@ -368,7 +378,7 @@ def get_dashboard_data():
         # Get pending visits (Outstanding Visit) across all plans for the user
         all_parent_plans = frappe.db.get_all("Sales Visit Plan", filters={"sales_person": sales_person}, fields=["name"])
         all_parent_plan_names = [p.name for p in all_parent_plans]
-        
+
         pending_visits = 0
         if all_parent_plan_names:
             pending_visits = frappe.db.count(
@@ -400,7 +410,7 @@ def get_weekly_visit_sales_comparison_data():
         employee_id = frappe.db.get_value("Employee", {"user_id": frappe.session.user}, "name")
         if not employee_id:
             return {"status": "error", "message": "Employee not found for the current user."}
-        
+
         # Log the found Employee ID for debugging purposes
         frappe.log(f"Debug: Found Employee ID: {employee_id}")
 
@@ -409,7 +419,7 @@ def get_weekly_visit_sales_comparison_data():
 
         for i in range(8): # Last 8 weeks
             week_start = get_first_day_of_week(add_days(today, -7 * i))
-            
+
             week_number = week_start.isocalendar()[1]
             week_label = f"Minggu ke-{week_number}"
 
@@ -424,7 +434,7 @@ def get_weekly_visit_sales_comparison_data():
             )
             frappe.log(f"Debug: Week {week_start}, Plans: {parent_plans_in_week}")
             plan_names_in_week = [p.name for p in parent_plans_in_week]
-            
+
             planned_in_week = 0
             completed_in_week = 0
 
@@ -445,11 +455,11 @@ def get_weekly_visit_sales_comparison_data():
                 "planned": planned_in_week,
                 "completed": completed_in_week
             }
-        
+
         labels = list(weekly_data.keys())
         planned_data = [weekly_data[label]["planned"] for label in labels]
         completed_data = [weekly_data[label]["completed"] for label in labels]
-        
+
         return {
             "status": "success",
             "labels": labels,
@@ -475,7 +485,7 @@ def get_weekly_customer_order_data():
             return {"status": "error", "message": f"Akun Anda belum terhubung dengan profil Sales Person. Hubungi administrator untuk menautkan Employee ID: {employee_id}."}
 
         today = get_datetime(frappe.utils.today())
-        
+
         customer_weekly_orders = {}
 
         for i in range(8): # Last 8 weeks
@@ -499,18 +509,18 @@ def get_weekly_customer_order_data():
 
                 if week_label not in customer_weekly_orders:
                     customer_weekly_orders[week_label] = {}
-                
+
                 if customer_name not in customer_weekly_orders[week_label]:
                     customer_weekly_orders[week_label][customer_name] = 0
-                
+
                 customer_weekly_orders[week_label][customer_name] += grand_total
-        
+
         formatted_data = []
         all_customers = set()
         for week_data in customer_weekly_orders.values():
             for customer in week_data.keys():
                 all_customers.add(customer)
-        
+
         sorted_customers = sorted(list(all_customers))
 
         for week_label, customers_data in customer_weekly_orders.items():
@@ -562,8 +572,8 @@ def get_sales_activity_monitoring_data(sales_person=None, customer=None, from_da
             "Sales Activity Monitoring",
             filters=filters,
             fields=[
-                "name", "employee_name", "customer", "plan_date_time", "checkin_time", 
-                "checkout_time", "duration", "image_link", "map_link", "latitude", 
+                "name", "employee_name", "customer", "plan_date_time", "checkin_time",
+                "checkout_time", "duration", "image_link", "map_link", "latitude",
                 "longitude", "status"
             ],
             order_by="checkin_time desc"

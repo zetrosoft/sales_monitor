@@ -1,7 +1,8 @@
 import frappe
 from frappe.model.document import Document
 from frappe.model.naming import make_autoname
-from frappe.utils import nowdate, now_datetime
+from frappe.utils import now_datetime, nowdate
+
 
 class SalesVisitPlan(Document):
     def before_insert(self):
@@ -14,7 +15,7 @@ class SalesVisitPlan(Document):
 
     def before_submit(self):
         pass
-        
+
 
     def on_cancel(self):
         # Allow cancellation only if status is not 'Completed'
@@ -45,7 +46,7 @@ class SalesVisitPlan(Document):
         # Calculate planned_visit_count
         self.planned_visit_count = len(self.visit_plan_details)
 
-        
+
 
         # Ensure sales_person is mandatory
         if not self.sales_person:

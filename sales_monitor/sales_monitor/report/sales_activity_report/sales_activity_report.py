@@ -1,6 +1,7 @@
-from __future__ import unicode_literals
 import frappe
+
 from sales_monitor.api import get_sales_activity_monitoring_data
+
 
 def execute(filters=None):
     columns = [

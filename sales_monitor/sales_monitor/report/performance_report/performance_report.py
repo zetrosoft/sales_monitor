@@ -1,6 +1,7 @@
 
 import frappe
 
+
 def execute(filters=None):
     columns = [
         {"label": "Sales Person", "fieldname": "sales_person", "fieldtype": "Link", "options": "Employee", "width": 150},
