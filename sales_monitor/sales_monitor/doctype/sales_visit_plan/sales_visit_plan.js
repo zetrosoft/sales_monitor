@@ -1,9 +1,21 @@
 frappe.ui.form.on('Sales Visit Plan', {
     setup: function(frm) {
-        // Any setup that doesn't depend on rendered fields can go here
+        // Set query for the 'sales_person' field
+        frm.set_query("sales_person", function() {
+            return {
+                query: "sales_monitor.sales_monitor.doctype.sales_visit_plan.sales_visit_plan.get_sales_team_employees"
+            };
+        });
     },
 
     refresh: function(frm) {
+        // Make sales_person read-only if the document is submitted
+        if (frm.doc.docstatus === 1) {
+            frm.set_df_property("sales_person", "read_only", 1);
+        } else {
+            frm.set_df_property("sales_person", "read_only", 0);
+        }
+
         // Set query for 'customer' field in 'visit_plan_items' child table
         // This needs to be in refresh to ensure the grid is rendered
         if (frm.fields_dict['visit_plan_items'] && frm.fields_dict['visit_plan_items'].grid) {
@@ -103,7 +115,7 @@ frappe.ui.form.on('Sales Visit Plan', {
                 method: 'frappe.client.get_value',
                 args: {
                     doctype: 'Employee',
-                    fieldname: 'user_id',
+                    fieldname: ['user_id', 'employee_name'],
                     filters: {
                         name: frm.doc.sales_person
                     }
@@ -111,11 +123,13 @@ frappe.ui.form.on('Sales Visit Plan', {
                 callback: function(r) {
                     if (r.message) {
                         frm.set_value('sales_id', r.message.user_id);
+                        frm.set_value('employee_name', r.message.employee_name); // Set employee_name
                     }
                 }
             });
         } else {
             frm.set_value('sales_id', '');
+            frm.set_value('employee_name', ''); // Clear employee_name as well
         }
     }
 });

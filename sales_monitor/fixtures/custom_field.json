@@ -1,0 +1,48 @@
+[
+    {
+        "doctype": "Custom Field",
+        "name": "Customer-custom_latitude",
+        "dt": "Customer",
+        "fieldname": "custom_latitude",
+        "fieldtype": "Data",
+        "label": "Latitude",
+        "insert_after": "email_id"
+    },
+    {
+        "doctype": "Custom Field",
+        "name": "Customer-custom_longitude",
+        "dt": "Customer",
+        "fieldname": "custom_longitude",
+        "fieldtype": "Data",
+        "label": "Longitude",
+        "insert_after": "custom_latitude"
+    },
+    {
+        "doctype": "Custom Field",
+        "name": "Customer-address_on_map_tab",
+        "dt": "Customer",
+        "fieldname": "address_on_map_tab",
+        "fieldtype": "Tab Break",
+        "label": "Address On Map",
+        "insert_after": "portal_users"
+    },
+    {
+        "doctype": "Custom Field",
+        "name": "Customer-map_html",
+        "dt": "Customer",
+        "fieldname": "map_html",
+        "fieldtype": "HTML",
+        "label": "Map",
+        "insert_after": "address_on_map_tab"
+    },
+    {
+        "doctype": "Custom Field",
+        "name": "Customer-custom_picked_address",
+        "dt": "Customer",
+        "fieldname": "custom_picked_address",
+        "fieldtype": "Data",
+        "label": "Picked Address",
+        "insert_after": "map_html",
+        "hidden": 1
+    }
+]

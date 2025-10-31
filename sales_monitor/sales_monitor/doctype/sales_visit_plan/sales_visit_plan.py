@@ -101,3 +101,31 @@ def get_sales_visit_plan_list(doctype, filters, start, page_len, order_by):
         plan.planned_visit_count = len(items) # Count the items
 
     return sales_visit_plans
+
+@frappe.whitelist()
+def get_sales_team_employees(doctype, txt, searchfield, start, page_len, filters):
+    """
+    Returns a list of Employees who are linked to an active Sales Person for use in a link field query.
+    """
+    sales_person_employees = frappe.get_all(
+        "Sales Person",
+        filters={"enabled": 1},
+        fields=["employee"],
+        pluck="employee",
+        distinct=True
+    )
+
+    employee_filters = [
+        ["name", "in", sales_person_employees],
+        [searchfield, "like", f"%{txt}%"],
+    ]
+
+    return frappe.get_list(
+        doctype,
+        filters=employee_filters,
+        fields=["name", "employee_name"],
+        as_list=True,
+        page_length=page_len,
+        start=start,
+        order_by="name"
+    )
