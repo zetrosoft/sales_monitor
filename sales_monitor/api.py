@@ -21,6 +21,7 @@ def pwa_login(usr, pwd):
 
         user_roles = frappe.get_roles()
         employee_id = frappe.db.get_value("Employee", {"user_id": frappe.session.user}, "name")
+        employee_name = frappe.db.get_value("Employee", employee_id, "employee_name")
 
         return {
             "status": "success",
@@ -28,6 +29,7 @@ def pwa_login(usr, pwd):
             "user_id": frappe.session.user,
             "full_name": frappe.session.user_full_name,
             "employee_id": employee_id,
+            "employee_name": employee_name,
             "roles": user_roles
         }
     except frappe.exceptions.AuthenticationError:
@@ -38,6 +40,13 @@ def pwa_login(usr, pwd):
 
 @frappe.whitelist(allow_guest=True)
 def get_sales_visit_plans(date=None, limit_start=0, limit_page_length=5):
+    STATUS_ORDER = {
+        "Planned": 0,
+        "Checked In":1,
+        "Completed": 2,
+        "Canceled": 3,
+        "Draft": 4,
+    }
     try:
         employee_id = frappe.db.get_value("Employee", {"user_id": frappe.session.user}, "name")
         if not employee_id:
@@ -148,14 +157,6 @@ def get_sales_visit_plans(date=None, limit_start=0, limit_page_length=5):
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Error in get_sales_visit_plans")
         frappe.throw(f"Failed to fetch sales visit plans: {e}")
-
-STATUS_ORDER = {
-    "Planned": 0,
-    "Checked In":1,
-    "Completed": 2,
-    "Canceled": 3,
-    "Draft": 4,
-}
 
 from frappe.utils.file_manager import save_file
 
@@ -618,27 +619,143 @@ def create_sales_visit_plan(sales_visit_plan_data):
 @frappe.whitelist()
 def get_customer_master_location(customer):
     """
-    Fetches the latitude and longitude from the very first recorded visit
-    for a given customer to be used as the 'master' location.
+    Fetches the master latitude and longitude for a given customer with a 3-tier priority:
+    1. Direct fields from the Customer doctype.
+    2. The most recent Sales Activity Monitoring record.
+    3. Returns None if not found in either.
     """
     if not customer:
         return None
 
-    first_visit = frappe.db.get_list(
-        "Sales Activity Monitoring",
-        filters={
-            "customer": customer,
-            "latitude": ["!=", 0],
-            "longitude": ["!=", 0],
-        },
-        fields=["latitude", "longitude"],
-        order_by="creation asc",
-        limit=1,
-    )
-
-    if first_visit:
+    # Priority 1: Get from Customer master doctype
+    customer_doc = frappe.get_value("Customer", customer, ["custom_latitude", "custom_longitude"], as_dict=True)
+    if customer_doc and customer_doc.get("custom_latitude") and customer_doc.get("custom_longitude"):
         return {
-            "latitude": first_visit[0].get("latitude"),
-            "longitude": first_visit[0].get("longitude"),
+            "latitude": customer_doc.custom_latitude,
+            "longitude": customer_doc.custom_longitude
         }
+
+    # Priority 2: Get from the most recent sales activity
+    last_visit = frappe.db.get_list(
+        "Sales Activity Monitoring",
+        filters={"customer": customer, "latitude": ["is", "set"], "longitude": ["is", "set"]},
+        fields=["latitude", "longitude"],
+        order_by="creation desc",
+        limit=1
+    )
+    if last_visit:
+        return {
+            "latitude": last_visit[0].get("latitude"),
+            "longitude": last_visit[0].get("longitude")
+        }
+
+    # Priority 3: Not found
     return None
+
+@frappe.whitelist()
+def update_customer_location(customer, latitude, longitude):
+    """
+    Updates the custom_latitude and custom_longitude fields for a given Customer.
+    """
+    try:
+        if not frappe.db.exists("Customer", customer):
+            return {"status": "error", "message": f"Customer '{customer}' not found."}
+
+        frappe.db.set_value("Customer", customer, {
+            "custom_latitude": latitude,
+            "custom_longitude": longitude
+        })
+        frappe.db.commit()
+        return {"status": "success", "message": f"Location for customer {customer} updated."}
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Error in update_customer_location")
+        return {"status": "error", "message": str(e)}
+
+
+@frappe.whitelist(allow_guest=True)
+def get_user_profile_data():
+    try:
+        user_id = frappe.session.user
+        employee_id = frappe.db.get_value("Employee", {"user_id": user_id}, "name")
+
+        if not employee_id:
+            frappe.throw("Employee ID not found for current user.")
+
+        employee_data = frappe.db.get_value(
+            "Employee",
+            employee_id,
+            ["employee_name", "designation", "department", "company_email", "cell_number", "image"],
+            as_dict=True
+        )
+
+        if not employee_data:
+            frappe.throw(f"Employee data not found for Employee ID: {employee_id}")
+
+        return {"status": "success", "data": employee_data}
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Error in get_user_profile_data")
+        frappe.throw(f"Failed to fetch user profile data: {e}")
+
+@frappe.whitelist(allow_guest=True)
+def get_sales_person_customers():
+    try:
+        user_id = frappe.session.user
+        frappe.log(f"DEBUG: get_sales_person_customers - user_id: {user_id}") # Log user_id
+        employee_id = frappe.db.get_value("Employee", {"user_id": user_id}, "name")
+        frappe.log(f"DEBUG: get_sales_person_customers - employee_id: {employee_id}") # Log employee_id
+
+        if not employee_id:
+            frappe.throw("Employee ID not found for current user.")
+
+        sales_person_id = frappe.db.get_value("Sales Person", {"employee": employee_id}, "name")
+        frappe.log(f"DEBUG: get_sales_person_customers - sales_person_id: {sales_person_id}") # Log sales_person_id
+        if not sales_person_id:
+            frappe.throw(f"Could not find linked Sales Person for Employee: {employee_id}")
+
+        # Define common sales person filter
+        sales_person_filter = ["sales_person", "in", [sales_person_id, employee_id]]
+
+        # Get parent Sales Visit Plans for this sales person
+        sales_visit_plans = frappe.get_list(
+            "Sales Visit Plan",
+            filters=[sales_person_filter], # Gunakan filter yang diperbarui
+            pluck="name",
+            ignore_permissions=True
+        )
+        frappe.log(f"DEBUG: get_sales_person_customers - sales_visit_plans: {sales_visit_plans}") # Log sales_visit_plans
+
+        customers_from_visits = []
+        if sales_visit_plans:
+            # Get customers from Sales Visit Plan Items associated with these parent plans
+            customers_from_visits = frappe.get_list(
+                "Sales Visit Plan Item",
+                filters={"parent": ["in", sales_visit_plans]},
+                pluck="customer",
+                distinct=True,
+                ignore_permissions=True
+            )
+        frappe.log(f"DEBUG: get_sales_person_customers - customers_from_visits: {customers_from_visits}") # Log customers_from_visits
+        
+        # Get customers from Sales Activity Monitoring associated with this sales person
+        customers_from_activities = frappe.get_list(
+            "Sales Activity Monitoring",
+            filters=[sales_person_filter], # Gunakan filter yang diperbarui
+            pluck="customer",
+            distinct=True,
+            ignore_permissions=True
+        )
+        frappe.log(f"DEBUG: get_sales_person_customers - customers_from_activities: {customers_from_activities}") # Log customers_from_activities
+
+        all_customers = set()
+        for c in customers_from_visits:
+            all_customers.add(c)
+        for c in customers_from_activities:
+            all_customers.add(c)
+        frappe.log(f"DEBUG: get_sales_person_customers - all_customers: {all_customers}") # Log all_customers
+
+        return {"status": "success", "data": sorted(list(all_customers))}
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Error in get_sales_person_customers")
+        frappe.throw(f"Failed to fetch sales person customers: {e}")

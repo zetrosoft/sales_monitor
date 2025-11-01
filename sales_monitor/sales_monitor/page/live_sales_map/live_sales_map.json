@@ -1,0 +1,21 @@
+{
+ "content": null,
+ "creation": "2025-10-31 10:00:00.000000",
+ "docstatus": 0,
+ "doctype": "Page",
+ "idx": 0,
+ "modified": "2025-10-31 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "sales_monitor",
+ "name": "live-sales-map",
+ "owner": "Administrator",
+ "page_name": "Live Sales Map",
+ "parent": null,
+ "parentfield": null,
+ "parenttype": null,
+ "published": 1,
+ "route": "live-sales-map",
+ "standard": "No",
+ "system_page": 0,
+ "title": "Live Sales Map"
+}

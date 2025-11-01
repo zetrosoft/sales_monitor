@@ -6,6 +6,7 @@
  "engine": "InnoDB",
  "field_order": [
   "customer",
+  "customer_address_html",
   "sales_person",
   "sales_visit_plan_item",
   "plan_date_time",
@@ -29,6 +30,12 @@
    "in_list_view": 1,
    "label": "Customer",
    "options": "Customer"
+  },
+  {
+   "fieldname": "customer_address_html",
+   "fieldtype": "Data",
+   "label": "Customer Address",
+   "insert_after": "customer"
   },
   {
    "fieldname": "sales_visit_plan_item",
@@ -64,13 +71,15 @@
   {
    "fieldname": "image_link",
    "fieldtype": "Attach Image",
+   "hidden": 1,
    "in_list_view": 1,
    "label": "Photo"
   },
   {
    "fieldname": "map_link",
    "fieldtype": "Data",
-   "in_list_view": 1,
+   "hidden": 1,
+   "in_list_view": 0,
    "label": "Map"
   },
   {
@@ -84,14 +93,14 @@
    "fieldname": "latitude",
    "fieldtype": "Data",
    "hidden": 1,
-   "in_list_view": 1,
+   "in_list_view": 0,
    "label": "Latitude"
   },
   {
    "fieldname": "longitude",
    "fieldtype": "Data",
    "hidden": 1,
-   "in_list_view": 1,
+   "in_list_view": 0,
    "label": "Longitude"
   },
   {
