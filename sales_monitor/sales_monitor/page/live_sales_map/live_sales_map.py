@@ -1,6 +1,7 @@
 import frappe
 from frappe.utils import getdate
 
+
 @frappe.whitelist()
 def get_todays_visits(sales_person, visit_date):
     if not sales_person or not visit_date:

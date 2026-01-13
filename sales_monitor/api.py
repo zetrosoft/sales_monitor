@@ -736,7 +736,7 @@ def get_sales_person_customers():
                 ignore_permissions=True
             )
         frappe.log(f"DEBUG: get_sales_person_customers - customers_from_visits: {customers_from_visits}") # Log customers_from_visits
-        
+
         # Get customers from Sales Activity Monitoring associated with this sales person
         customers_from_activities = frappe.get_list(
             "Sales Activity Monitoring",

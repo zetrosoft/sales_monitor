@@ -1,5 +1,6 @@
 import frappe
 
+
 @frappe.whitelist()
 def create_address_from_map(customer_name, address_title, address_line1, address_line2, latitude, longitude, city, state, pincode, country):
     """
@@ -18,7 +19,7 @@ def create_address_from_map(customer_name, address_title, address_line1, address
         address.address_type = "Billing" # Atau jenis lain yang sesuai
         address.address_line1 = address_line1
         address.address_line2 = address_line2 # Tambahkan address_line2
-        
+
         # --- ASSIGN FIELD ALAMAT TERSTRUKTUR DARI MAP ---
         address.city = city
         address.state = state

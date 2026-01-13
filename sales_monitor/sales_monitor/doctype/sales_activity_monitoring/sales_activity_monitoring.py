@@ -70,9 +70,9 @@ def get_customer_address(customer_name):
         address_details.get("address_line2"),
         f'{address_details.get("city", "")} {address_details.get("state", "")} {address_details.get("pincode", "")}'.strip()
     ]
-    
+
     html = '<div class="control-value" style="padding-top: 5px;">'
     html += '<br>'.join(filter(None, address_parts))
     html += '</div>'
-    
+
     return html
