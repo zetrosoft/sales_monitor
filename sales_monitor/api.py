@@ -10,6 +10,7 @@ from frappe.utils import (
     getdate,
     now_datetime,
 )
+from frappe import logger
 
 
 @frappe.whitelist(allow_guest=True)
@@ -759,3 +760,63 @@ def get_sales_person_customers():
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Error in get_sales_person_customers")
         frappe.throw(f"Failed to fetch sales person customers: {e}")
+
+@frappe.whitelist()
+def create_customer(customer_data):
+    try:
+        logger("sales_monitor.api").debug(f"--- CREATE CUSTOMER START --- Received: {customer_data}")
+        
+        if frappe.db.exists("Customer", customer_data.get("customer_name")):
+            return {"status": "error", "message": f"Customer '{customer_data.get('customer_name')}' already exists."}
+
+        # 1. Create and insert Customer document first to get its name
+        customer_doc = frappe.new_doc("Customer")
+        customer_doc.customer_name = customer_data.get("customer_name")
+        customer_doc.customer_group = customer_data.get("customer_group")
+        customer_doc.territory = customer_data.get("territory")
+        
+        # Use a generic custom field for owner name as requested
+        customer_doc.customer_details = customer_data.get("custom_owner_name") 
+        customer_doc.mobile_no = customer_data.get("custom_whatsapp_no") # Standard field
+        customer_doc.customer_type = customer_data.get("custom_customer_type")
+        customer_doc.primary_address = customer_data.get("custom_address")
+        customer_doc.custom_latitude = customer_data.get("custom_latitude")
+        customer_doc.custom_longitude = customer_data.get("custom_longitude")
+
+        if customer_data.get("sales_person"):
+            customer_doc.sales_person = customer_data.get("sales_person")
+        
+        customer_doc.insert(ignore_permissions=True)
+        frappe.db.commit()
+        logger("sales_monitor.api").debug(f"--- Successfully inserted Customer: {customer_doc.name}")
+
+        # 2. Create and insert Address document, then link it
+        address_doc = frappe.new_doc("Address")
+        address_doc.address_title = customer_data.get("customer_name")
+        address_doc.address_type = "Billing"
+        address_doc.address_line1 = customer_data.get("custom_address")
+        address_doc.city = customer_data.get("custom_city")
+        address_doc.is_primary_address = 1
+        
+        # CORRECT WAY to add to a child table
+        address_doc.append("links", {
+            "link_doctype": "Customer",
+            "link_name": customer_doc.name
+        })
+        
+        address_doc.insert(ignore_permissions=True)
+        frappe.db.commit()
+        logger("sales_monitor.api").debug(f"--- Successfully inserted Address: {address_doc.name}")
+
+        # 3. Update customer_doc with primary_address
+        frappe.db.set_value("Customer", customer_doc.name, {
+            "primary_address": address_doc.name
+        })
+        frappe.db.commit()
+        logger("sales_monitor.api").debug(f"--- Successfully linked Address to Customer: {customer_doc.name}")
+
+        return {"status": "success", "message": "Customer created successfully", "data": {"name": customer_doc.name}}
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Create Customer Error")
+        return {"status": "error", "message": str(e)}
