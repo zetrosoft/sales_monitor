@@ -1,0 +1,28 @@
+{
+ "content": null,
+ "creation": "2026-01-26 00:00:00",
+ "docstatus": 0,
+ "doctype": "Page",
+ "idx": 0,
+ "modified": "2026-01-26 22:43:06.357772",
+ "modified_by": "Administrator",
+ "module": "Sales Monitor",
+ "name": "sales_person_visit_metric_html",
+ "page_name": "sales_person_visit_metric_html",
+ "roles": [
+  {
+   "role": "Administrator"
+  },
+  {
+   "role": "Accounts Manager"
+  },
+  {
+   "role": "Accounts User"
+  }
+ ],
+ "script": null,
+ "standard": "Yes",
+ "style": null,
+ "system_page": 0,
+ "title": "Sales Person Visit Metric (HTML)"
+}

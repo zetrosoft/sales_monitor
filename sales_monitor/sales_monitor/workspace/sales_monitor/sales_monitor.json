@@ -1,11 +1,6 @@
 {
- "charts": [
-  {
-   "chart_name": "Activity Monitoring",
-   "label": "Activity Monitoring"
-  }
- ],
- "content": "[{\"id\":\"v_e4KRuF7L\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Sales Monitor</span>\",\"col\":12}},{\"id\":\"e8W0YXhQN5\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Activity Monitoring\",\"col\":12}},{\"id\":\"67lrlCp1DH\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Sales Visit Schedule\",\"col\":3}},{\"id\":\"Ri6P48k4RG\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Sales Activity Monitoring\",\"col\":3}}]",
+ "charts": [],
+ "content": "[{\"id\":\"v_e4KRuF7L\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Sales Monitor</span>\",\"col\":12}},{\"id\":\"67lrlCp1DH\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Sales Visit Schedule\",\"col\":3}},{\"id\":\"Ri6P48k4RG\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Sales Activity Monitoring\",\"col\":3}},{\"id\":\"LSouzgNSLf\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"8wdHTO2rTg\",\"type\":\"card\",\"data\":{\"card_name\":\"Report\",\"col\":4}}]",
  "creation": "2025-09-10 00:45:51.235421",
  "custom_blocks": [],
  "docstatus": 0,
@@ -16,8 +11,38 @@
  "indicator_color": "green",
  "is_hidden": 0,
  "label": "Sales Monitor",
- "links": [],
- "modified": "2025-11-27 08:04:37.808569",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Report",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Sales Person visit Metric",
+   "link_count": 0,
+   "link_to": "Sales Person Visit Metric",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Sales Visit Metric",
+   "link_count": 0,
+   "link_to": "Sales Person Visit Metric HTML",
+   "link_type": "Page",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2026-01-26 18:46:08.606412",
  "modified_by": "Administrator",
  "module": "Sales Monitor",
  "name": "Sales Monitor",
@@ -27,7 +52,7 @@
  "public": 1,
  "quick_lists": [],
  "roles": [],
- "sequence_id": 8.0,
+ "sequence_id": 7.0,
  "shortcuts": [
   {
    "color": "Grey",

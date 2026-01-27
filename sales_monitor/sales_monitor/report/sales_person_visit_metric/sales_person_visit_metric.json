@@ -1,0 +1,26 @@
+{
+ "report_name": "Sales Person Visit Metric",
+ "doctype": "Report",
+ "ref_doctype": "Sales Activity Monitoring",
+ "report_type": "Script Report",
+ "is_standard": "Yes",
+ "name":"Sales Person Visit Metric",
+ "module": "Sales Monitor",
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Administrator"
+  },
+  {
+   "role": "Accounts User"
+  },
+  {
+   "role": "Accounts Manager"
+  },
+  {
+   "role": "Direktor"
+  }
+ ]
+}

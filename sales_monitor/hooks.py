@@ -25,6 +25,10 @@ doctype_list_js = {
     "Sales Activity Monitoring": "public/js/sales_activity_monitoring_list.js"
 }
 
+page_js = {
+    "sales-person-visit-metric-html": "sales_monitor/sales_monitor/page/sales_person_visit_metric_html/sales_person_visit_metric_html.js"
+}
+
 #fixtures = ["Workspace"]
 
 # Other Hooks
