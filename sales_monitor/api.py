@@ -74,7 +74,7 @@ def get_sales_visit_plans(date=None, limit_start=0, limit_page_length=5):
             "Sales Visit Plan Item",
             filters={
                 "parent": ["in", parent_plan_names],
-                "status": ["not in", ["Completed", "Cancelled"]]
+                "status": ["!=", "Cancelled"]
             },
             fields=[
                 "name", "parent", "customer as store_name", "address",
@@ -88,7 +88,8 @@ def get_sales_visit_plans(date=None, limit_start=0, limit_page_length=5):
         activity_docs = frappe.db.get_all(
             "Sales Activity Monitoring",
             filters={"sales_visit_plan_item": ["in", visit_item_names]},
-            fields=["sales_visit_plan_item", "checkin_time", "checkout_time", "duration", "map_link", "image_link", "latitude", "longitude"]
+            fields=["sales_visit_plan_item", "checkin_time", "checkout_time", "duration", "map_link", "image_link", "latitude", "longitude"],
+            order_by="creation asc"
         )
 
         activity_details = {}
@@ -211,10 +212,13 @@ def submit_visit_update(name, new_status, latitude=None, longitude=None, photo=N
         elif new_status == "Completed":
             doc.status = "Completed"
 
+            # Ambil aktivitas 'Checked In' TERBARU untuk item ini
             activities = frappe.get_all(
                 "Sales Activity Monitoring",
                 filters={"sales_visit_plan_item": name, "status": "Checked In"},
-                fields=["name"]
+                fields=["name"],
+                order_by="creation desc", # Prioritaskan yang paling baru
+                limit=1
             )
 
             if activities:
