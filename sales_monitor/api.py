@@ -114,6 +114,10 @@ def get_sales_visit_plans(date=None, limit_start=0, limit_page_length=5):
             planned_date = plan_dates.get(parent_name)
             visit_time = processed_item.get('visit_time')
 
+            # Fetch customer_group for the current customer
+            customer_group = frappe.db.get_value("Customer", item.store_name, "customer_group")
+            processed_item['customer_group'] = customer_group if customer_group else None
+
             processed_item['parent_docstatus'] = plan_statuses.get(parent_name, 0)
 
             if planned_date and visit_time:
