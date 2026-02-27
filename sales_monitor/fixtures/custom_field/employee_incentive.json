@@ -1,0 +1,26 @@
+[
+ {
+  "name": "Employee Incentive-sales_incentive_payment_ref",
+  "doctype": "Custom Field",
+  "dt_name": "Employee Incentive",
+  "fieldname": "sales_incentive_payment_ref",
+  "label": "Sales Incentive Payment Ref",
+  "fieldtype": "Link",
+  "options": "Sales Incentive Payment",
+  "read_only": 1,
+  "insert_after": "employee",
+  "hidden": 0,
+  "permlevel": 0,
+  "reqd": 0,
+  "search_index": 0,
+  "sort_no": 0,
+  "allow_on_submit": 0,
+  "bold": 0,
+  "in_global_search": 0,
+  "in_list_view": 0,
+  "in_standard_filter": 0,
+  "in_preview": 0,
+  "no_copy": 0,
+  "print_hide": 0
+ }
+]

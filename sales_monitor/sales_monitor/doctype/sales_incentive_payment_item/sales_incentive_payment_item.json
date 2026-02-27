@@ -1,0 +1,79 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "autoincrement",
+ "creation": "2026-02-26 10:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "fields": [
+  {
+   "columns": 2,
+   "fieldname": "tipe_incentive",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Tipe Incentive",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "total_omset",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Total Omset",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "jumlah",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Jumlah",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "percentage",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "Percentage",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "bonus_omset",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Bonus Omset",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "bonus_admin",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Bonus Admin",
+   "read_only": 1
+  },
+  {
+   "columns": 2,
+   "fieldname": "total_bonus",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Total Bonus",
+   "read_only": 1
+  }
+ ],
+ "istable": 1,
+ "modified": "2026-02-26 23:45:00.000000",
+ "modified_by": "Administrator",
+ "module": "sales_monitor",
+ "name": "Sales Incentive Payment Item",
+ "naming_rule": "By \"Autoincrement\" field",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

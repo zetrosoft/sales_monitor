@@ -828,3 +828,173 @@ def create_customer(customer_data):
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Create Customer Error")
         return {"status": "error", "message": str(e)}
+
+@frappe.whitelist()
+def get_net_turnover(sales_person, start_date, end_date, incentive_category=None, customer_group_filters=None):
+    """
+    Calculates the net turnover for a given sales person within a date range,
+    optionally filtered by incentive category and specific customer groups.
+    `customer_group_filters` should be a list of customer group names.
+    """
+    try:
+        start_date = getdate(start_date)
+        end_date = getdate(end_date)
+        
+        if isinstance(customer_group_filters, str):
+            customer_group_filters = frappe.parse_json(customer_group_filters)
+        if not isinstance(customer_group_filters, list):
+            customer_group_filters = []
+
+        total_sales_amount = 0.0
+        total_return_amount = 0.0
+
+        # JOIN with tabSales Team to find invoices for this sales person
+        # Condition: T1.name = ST.parent AND ST.parenttype = 'Sales Invoice'
+        
+        sql_base = """
+            FROM `tabSales Invoice` T1
+            JOIN `tabSales Team` ST ON T1.name = ST.parent AND ST.parenttype = 'Sales Invoice'
+            {extra_join}
+            WHERE ST.sales_person = %s
+            AND T1.posting_date BETWEEN %s AND %s
+            AND T1.docstatus = 1
+            AND T1.is_return = %s
+            {extra_where}
+        """
+        
+        extra_join = ""
+        extra_where = ""
+        params_list = [sales_person, start_date, end_date]
+        
+        if incentive_category == "SPV Sales" and customer_group_filters:
+            extra_join = "JOIN `tabCustomer` T2 ON T1.customer = T2.name"
+            placeholders = ", ".join(["%s"] * len(customer_group_filters))
+            extra_where = f"AND T2.customer_group IN ({placeholders})"
+            
+        def get_sum(is_return):
+            local_params = params_list + [is_return] + customer_group_filters
+            query = f"SELECT SUM(T1.grand_total) " + sql_base.format(extra_join=extra_join, extra_where=extra_where)
+            res = frappe.db.sql(query, tuple(local_params))
+            return float(res[0][0]) if res and res[0][0] else 0.0
+
+        total_sales = get_sum(0)
+        total_return = get_sum(1)
+        
+        return total_sales - total_return
+            
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Error in get_net_turnover")
+        frappe.throw(f"Failed to calculate net turnover: {e}")
+
+@frappe.whitelist()
+def get_join_new_bonus(sales_person, start_date, end_date):
+    """
+    Calculates 'Join New' bonus based on first invoices of new customers in period.
+    Returns: {"total_bonus": float, "details": list}
+    """
+    try:
+        employee = frappe.db.get_value("Employee", {"sales_person": sales_person}, "name")
+        user_id = frappe.db.get_value("Employee", employee, "user_id") if employee else None
+        if not user_id:
+            return {"total_bonus": 0.0, "details": []}
+            
+        user_roles = frappe.get_roles(user_id)
+        
+        setting = frappe.get_all(
+            "Sales Incentive Setting",
+            filters=[
+                ["applies_to_role", "in", user_roles],
+                ["valid_from", "<=", end_date]
+            ],
+            fields=["name"],
+            order_by="valid_from desc",
+            limit=1
+        )
+        
+        if not setting:
+            return {"total_bonus": 0.0, "details": []}
+            
+        doc = frappe.get_doc("Sales Incentive Setting", setting[0].name)
+        rules = doc.bonus_join_new_table
+        if not rules:
+            return {"total_bonus": 0.0, "details": []}
+            
+        total_bonus = 0.0
+        details = []
+        
+        # JOIN with tabSales Team to find invoices for this sales person
+        sql_query = """
+            SELECT T1.customer, MIN(T1.posting_date) as first_date, T1.name, T1.grand_total
+            FROM `tabSales Invoice` T1
+            JOIN `tabSales Team` ST ON T1.name = ST.parent AND ST.parenttype = 'Sales Invoice'
+            WHERE T1.docstatus = 1 AND ST.sales_person = %s
+            GROUP BY T1.customer
+            HAVING first_date BETWEEN %s AND %s
+        """
+        first_invoices = frappe.db.sql(sql_query, (sales_person, start_date, end_date), as_dict=True)
+        
+        for inv in first_invoices:
+            matched_bonus = 0.0
+            matched_label = ""
+            sorted_rules = sorted(rules, key=lambda x: x.order_awal, reverse=True)
+            for rule in sorted_rules:
+                if inv.grand_total >= rule.order_awal:
+                    matched_bonus = rule.bonus
+                    matched_label = rule.keterangan
+                    break
+            
+            if matched_bonus > 0:
+                total_bonus += matched_bonus
+                details.append({
+                    "customer": inv.customer,
+                    "invoice": inv.name,
+                    "amount": inv.grand_total,
+                    "bonus": matched_bonus,
+                    "label": matched_label
+                })
+                
+        return {"total_bonus": total_bonus, "details": details}
+        
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Error in get_join_new_bonus")
+        return {"total_bonus": 0.0, "details": []}
+
+@frappe.whitelist()
+def get_incentive_tier(total_omset, sales_person, date):
+    """
+    Finds the applicable tier for monthly turnover bonus.
+    """
+    try:
+        employee = frappe.db.get_value("Employee", {"sales_person": sales_person}, "name")
+        user_id = frappe.db.get_value("Employee", employee, "user_id") if employee else None
+        if not user_id: return None
+        
+        user_roles = frappe.get_roles(user_id)
+        
+        setting = frappe.get_all(
+            "Sales Incentive Setting",
+            filters=[
+                ["applies_to_role", "in", user_roles],
+                ["valid_from", "<=", date]
+            ],
+            fields=["name"],
+            order_by="valid_from desc",
+            limit=1
+        )
+        
+        if not setting: return None
+        
+        doc = frappe.get_doc("Sales Incentive Setting", setting[0].name)
+        tiers = sorted(doc.bonus_penjualan_table, key=lambda x: x.omset_bulanan_min, reverse=True)
+        
+        for tier in tiers:
+            if total_omset >= tier.omset_bulanan_min:
+                return {
+                    "setting": doc.name,
+                    "persentase": tier.persentase,
+                    "bonus_admin": tier.bonus_admin,
+                    "min_omset": tier.omset_bulanan_min
+                }
+        return None
+    except Exception:
+        return None

@@ -18,6 +18,7 @@ doctype_js = {
     "Customer": "public/js/customer_map_picker_custom.js",
     "Sales Activity Monitoring": "sales_monitor/sales_monitor/doctype/sales_activity_monitoring/sales_activity_monitoring.js",
     "Sales Visit Plan": "sales_monitor/sales_monitor/doctype/sales_visit_plan/sales_visit_plan.js",
+    "Employee Incentive": "public/js/employee_incentive_custom.js"
 }
 
 doctype_list_js = {
@@ -31,5 +32,24 @@ page_js = {
 
 #fixtures = ["Workspace"]
 
+fixtures = [
+    {
+        "doctype": "Custom Field",
+        "filters": {
+            "dt_name": "Employee Incentive"
+        }
+    },
+    {
+        "doctype": "Custom Field",
+        "filters": {
+            "dt_name": "Payroll Entry"
+        }
+    }
+]
+
 # Other Hooks
 # desktop_icons = "sales_monitor.config.desktop.get_data"
+
+method_override = {
+    "erpnext.payroll.doctype.salary_slip.salary_slip.calculate_net_pay": "sales_monitor.override_payroll.calculate_net_pay_override"
+}

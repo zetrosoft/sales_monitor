@@ -1,0 +1,113 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:{month}-{year}-{sales_person}",
+ "creation": "2026-02-26 10:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "fields": [
+  {
+   "fieldname": "month",
+   "fieldtype": "Select",
+   "label": "Bulan",
+   "options": "Januari\nFebruari\nMaret\nApril\nMei\nJuni\nJuli\nAgustus\nSeptember\nOktober\nNovember\nDesember",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "year",
+   "fieldtype": "Link",
+   "label": "Tahun",
+   "options": "Fiscal Year",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "all_sales_persons",
+   "fieldtype": "Check",
+   "label": "All Sales Person",
+   "hidden": 1
+  },
+  {
+   "fieldname": "sales_person",
+   "fieldtype": "Link",
+   "label": "Sales Person",
+   "options": "Sales Person",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "column_break_info",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "applied_role",
+   "fieldtype": "Data",
+   "label": "Applied Role",
+   "read_only": 1
+  },
+  {
+   "fieldname": "active_scheme",
+   "fieldtype": "Link",
+   "label": "Active Scheme",
+   "options": "Sales Incentive Setting",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_items",
+   "fieldtype": "Section Break",
+   "label": "Detail Perhitungan Incentive"
+  },
+  {
+   "fieldname": "incentive_items",
+   "fieldtype": "Table",
+   "label": "Items Insentif",
+   "options": "Sales Incentive Payment Item"
+  },
+  {
+   "fieldname": "section_footer",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_footer",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "grand_total",
+   "fieldtype": "Currency",
+   "label": "Total Incentive",
+   "read_only": 1,
+   "bold": 1
+  }
+ ],
+ "is_submittable": 1,
+ "issingle": 0,
+ "modified": "2026-02-26 23:35:00.000000",
+ "modified_by": "Administrator",
+ "module": "sales_monitor",
+ "name": "Sales Incentive Payment",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "set_user_permissions": 1,
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 0,
+ "search_fields": "month,year,sales_person",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "sales_person"
+}
