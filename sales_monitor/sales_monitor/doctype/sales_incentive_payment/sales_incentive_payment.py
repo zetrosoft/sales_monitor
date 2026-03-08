@@ -90,17 +90,32 @@ def process_sales_incentive(month, year, sales_person_name=None):
         if not sales_person_name:
             frappe.throw(_("Sales Person harus dipilih."))
 
-        # 1. Identity Context (Fixed to Sales User Role context as requested)
-        applied_role = "Sales User"
+        # 1. Identity Context: Get roles from the actual user linked to Sales Person
+        employee_id = frappe.db.get_value("Sales Person", sales_person_name, "employee")
+        user_id = frappe.db.get_value("Employee", employee_id, "user_id") if employee_id else None
+        
+        if not user_id:
+            frappe.throw(_(f"User tidak ditemukan untuk Sales Person: {sales_person_name}"))
+            
+        user_roles = frappe.get_roles(user_id)
+        
+        # Find setting that matches any of the user's roles
         setting_info = frappe.get_all("Sales Incentive Setting", 
-            filters=[["applies_to_role", "=", applied_role], ["valid_from", "<=", end_date]],
-            fields=["name", "incentive_category"], order_by="valid_from desc", limit=1)
+            filters=[["applies_to_role", "in", user_roles], ["valid_from", "<=", end_date]],
+            fields=["name", "incentive_category", "applies_to_role"], 
+            order_by="valid_from desc", limit=1)
         
         if not setting_info:
-            frappe.throw(_(f"Tidak ada setting untuk role {applied_role} pada periode {month} {year}"))
+            frappe.throw(_(f"Tidak ada setting insentif yang cocok dengan role user {user_id} pada periode {month} {year}"))
 
+        applied_role = setting_info[0].applies_to_role
         setting_doc = frappe.get_doc("Sales Incentive Setting", setting_info[0].name)
-        groups = [g.customer_group for g in setting_doc.customer_group_filter] if setting_info[0].incentive_category == "SPV Sales" else []
+        
+        # For SPV Sales, we use the specific customer group filters (Distributor & Agent) 
+        # handled inside get_net_turnover, but we still pass empty list here if not SPV
+        groups = [] 
+        if setting_info[0].incentive_category == "SPV Sales":
+            groups = ["Distributor", "Agent"]
 
         # 2. Base Calculations
         net_turnover = get_net_turnover(sales_person_name, start_date, end_date, setting_info[0].incentive_category, frappe.json.dumps(groups))

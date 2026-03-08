@@ -26,6 +26,14 @@ frappe.ui.form.on('Sales Incentive Payment', {
     month: function(frm) { frm.trigger('process_incentive_data'); },
     year: function(frm) { frm.trigger('process_incentive_data'); },
 
+    on_submit: function(frm) {
+        frappe.show_alert({
+            message: __('Sales Incentive Payment berhasil disubmit.'),
+            indicator: 'green'
+        });
+        frm.reload_doc();
+    },
+
     process_incentive_data: function(frm) {
         if (!frm.doc.sales_person || !frm.doc.month || !frm.doc.year) {
             frm.clear_table('incentive_items');

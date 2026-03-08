@@ -11,30 +11,35 @@
    "fieldname": "keterangan",
    "fieldtype": "Data",
    "label": "Keterangan",
-   "reqd": 1
+   "reqd": 1,
+   "in_list_view": 1
   },
   {
    "fieldname": "order_awal",
    "fieldtype": "Currency",
    "label": "Order Awal",
-   "reqd": 1
+   "reqd": 1,
+   "in_list_view": 1
   },
   {
    "fieldname": "bonus",
    "fieldtype": "Currency",
    "label": "Bonus",
-   "reqd": 1
+   "reqd": 1,
+   "in_list_view": 1
   },
   {
    "fieldname": "target",
    "fieldtype": "Currency",
-   "label": "Target"
+   "label": "Target",
+   "in_list_view": 1
   },
   {
    "fieldname": "total_bonus",
    "fieldtype": "Currency",
    "label": "Total Bonus",
-   "read_only": 1
+   "read_only": 1,
+   "in_list_view": 1
   }
  ],
  "istable": 1,

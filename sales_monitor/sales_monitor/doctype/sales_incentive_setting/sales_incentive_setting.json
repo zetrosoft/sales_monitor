@@ -13,7 +13,8 @@
    "label": "Nama Kebijakan Insentif",
    "reqd": 1,
    "unique": 1,
-   "description": "Contoh: Bonus Sales Nasional 2026"
+   "in_list_view": 1,
+   "allow_edit_after_submit": 1
   },
   {
    "fieldname": "incentive_category",
@@ -21,14 +22,16 @@
    "label": "Kategori Insentif",
    "options": "Admin Sales\nSPV Sales",
    "reqd": 1,
-   "description": "Pilih 'SPV Sales' jika insentif hanya dihitung dari grup pelanggan tertentu (misal: Distributor)."
+   "read_only_on_submit": 1,
+   "in_list_view": 1
   },
   {
-   "fieldname": "applies_to_role",
-   "fieldtype": "Link",
+   "fieldname": "applies_to_roles",
+   "fieldtype": "Table",
    "label": "Berlaku untuk Role",
-   "options": "Role",
-   "reqd": 1
+   "options": "Sales Incentive Role",
+   "reqd": 1,
+   "allow_edit_after_submit": 1
   },
   {
    "fieldname": "column_break_1",
@@ -38,12 +41,16 @@
    "fieldname": "valid_from",
    "fieldtype": "Date",
    "label": "Mulai Berlaku",
-   "reqd": 1
+   "reqd": 1,
+   "in_list_view": 1,
+   "allow_edit_after_submit": 1
   },
   {
    "fieldname": "valid_until",
    "fieldtype": "Date",
-   "label": "Berakhir Pada"
+   "label": "Berakhir Pada",
+   "in_list_view": 1,
+   "allow_edit_after_submit": 1
   },
   {
    "fieldname": "section_break_config",
@@ -55,42 +62,42 @@
    "fieldtype": "Table",
    "label": "Target Grup Pelanggan (Hanya SPV)",
    "options": "Sales Incentive Customer Group",
-   "description": "Kosongkan jika ingin menghitung semua grup pelanggan."
+   "allow_edit_after_submit": 1
   },
   {
    "fieldname": "description",
    "fieldtype": "Small Text",
    "label": "Deskripsi Aturan",
-   "description": "Penjelasan detail mengenai aturan ini agar muncul di laporan."
+   "allow_edit_after_submit": 1
   },
   {
    "fieldname": "section_break_1",
    "fieldtype": "Section Break",
-   "label": "Skema Pelanggan Baru (Join New)",
-   "description": "Tentukan bonus untuk setiap kategori pelanggan baru yang bergabung."
+   "label": "Skema Pelanggan Baru (Join New)"
   },
   {
    "fieldname": "bonus_join_new_table",
    "fieldtype": "Table",
    "label": "Detail Bonus Join New",
-   "options": "Sales Incentive Join New"
+   "options": "Sales Incentive Join New",
+   "allow_edit_after_submit": 1
   },
   {
    "fieldname": "section_break_2",
    "fieldtype": "Section Break",
-   "label": "Skema Omset Bulanan (Tiering)",
-   "description": "Sistem akan otomatis mengambil baris tertinggi yang berhasil dicapai oleh Salesman setiap bulannya."
+   "label": "Skema Omset Bulanan (Tiering)"
   },
   {
    "fieldname": "bonus_penjualan_table",
    "fieldtype": "Table",
    "label": "Detail Bonus Omset",
-   "options": "Sales Incentive Penjualan"
+   "options": "Sales Incentive Penjualan",
+   "allow_edit_after_submit": 1
   }
  ],
- "is_submittable": 0,
+ "is_submittable": 1,
  "issingle": 0,
- "modified": "2026-02-26 10:00:00.000000",
+ "modified": "2026-03-03 01:30:00.000000",
  "modified_by": "Administrator",
  "module": "sales_monitor",
  "name": "Sales Incentive Setting",
@@ -112,7 +119,7 @@
   }
  ],
  "quick_entry": 1,
- "search_fields": "title,applies_to_role,incentive_category",
+ "search_fields": "title,incentive_category",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],

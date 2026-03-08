@@ -1,4 +1,5 @@
 import sales_monitor.config
+import sales_monitor.override_payroll # Aktifkan monkey patching
 
 app_name = "sales_monitor"
 app_title = "Sales Monitor"
@@ -50,6 +51,4 @@ fixtures = [
 # Other Hooks
 # desktop_icons = "sales_monitor.config.desktop.get_data"
 
-method_override = {
-    "erpnext.payroll.doctype.salary_slip.salary_slip.calculate_net_pay": "sales_monitor.override_payroll.calculate_net_pay_override"
-}
+# calculate_net_pay di-override via monkey patching di override_payroll.py

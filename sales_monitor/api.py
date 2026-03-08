@@ -832,55 +832,69 @@ def create_customer(customer_data):
 @frappe.whitelist()
 def get_net_turnover(sales_person, start_date, end_date, incentive_category=None, customer_group_filters=None):
     """
-    Calculates the net turnover for a given sales person within a date range,
-    optionally filtered by incentive category and specific customer groups.
-    `customer_group_filters` should be a list of customer group names.
+    Calculates the turnover based on Sales Invoices that have been submitted (docstatus = 1).
+    - Admin Sales: All submitted Sales Invoices for the sales person.
+    - SPV Sales: Only submitted Sales Invoices for customers in 'Distributor' or 'Agent' groups.
     """
     try:
         start_date = getdate(start_date)
         end_date = getdate(end_date)
         
-        if isinstance(customer_group_filters, str):
-            customer_group_filters = frappe.parse_json(customer_group_filters)
-        if not isinstance(customer_group_filters, list):
-            customer_group_filters = []
+        target_groups = []
+        if incentive_category == "SPV Sales":
+            target_groups = ["Distributor", "Agent"]
 
-        total_sales_amount = 0.0
-        total_return_amount = 0.0
-
-        # JOIN with tabSales Team to find invoices for this sales person
-        # Condition: T1.name = ST.parent AND ST.parenttype = 'Sales Invoice'
-        
-        sql_base = """
-            FROM `tabSales Invoice` T1
-            JOIN `tabSales Team` ST ON T1.name = ST.parent AND ST.parenttype = 'Sales Invoice'
-            {extra_join}
+        # Define the query parts
+        where_clause = """
             WHERE ST.sales_person = %s
-            AND T1.posting_date BETWEEN %s AND %s
-            AND T1.docstatus = 1
-            AND T1.is_return = %s
-            {extra_where}
+            AND SI.posting_date BETWEEN %s AND %s
+            AND SI.docstatus = 1
+            AND SI.is_return = 0
         """
         
-        extra_join = ""
-        extra_where = ""
-        params_list = [sales_person, start_date, end_date]
+        params = [sales_person, start_date, end_date]
         
-        if incentive_category == "SPV Sales" and customer_group_filters:
-            extra_join = "JOIN `tabCustomer` T2 ON T1.customer = T2.name"
-            placeholders = ", ".join(["%s"] * len(customer_group_filters))
-            extra_where = f"AND T2.customer_group IN ({placeholders})"
-            
-        def get_sum(is_return):
-            local_params = params_list + [is_return] + customer_group_filters
-            query = f"SELECT SUM(T1.grand_total) " + sql_base.format(extra_join=extra_join, extra_where=extra_where)
-            res = frappe.db.sql(query, tuple(local_params))
-            return float(res[0][0]) if res and res[0][0] else 0.0
+        if target_groups:
+            placeholders = ", ".join(["%s"] * len(target_groups))
+            where_clause += f" AND SI.customer_group IN ({placeholders})"
+            params.extend(target_groups)
 
-        total_sales = get_sum(0)
-        total_return = get_sum(1)
+        # 1. Fetch the list of Sales Invoices for Debugging
+        list_query = f"""
+            SELECT SI.name, SI.grand_total, SI.customer, SI.posting_date
+            FROM `tabSales Invoice` SI
+            JOIN `tabSales Team` ST ON SI.name = ST.parent AND ST.parenttype = 'Sales Invoice'
+            {where_clause}
+        """
         
-        return total_sales - total_return
+        invoices = frappe.db.sql(list_query, tuple(params), as_dict=True)
+        
+        # 2. Construct Debug Message
+        debug_msg = f"<b>Debug Omset {incentive_category} ({sales_person})</b><br>"
+        debug_msg += f"Periode: {start_date} s/d {end_date}<br>"
+        debug_msg += f"Groups: {target_groups if target_groups else 'Semua'}<br><br>"
+        
+        if not invoices:
+            debug_msg += "<span style='color:red'>Tidak ditemukan Sales Invoice (Submitted) untuk kriteria ini.</span>"
+        else:
+            debug_msg += "<table border='1' style='width:100%; border-collapse: collapse; font-size: 12px;'>"
+            debug_msg += "<tr><th>Invoice Name</th><th>Date</th><th>Customer</th><th>Grand Total</th></tr>"
+            
+            total_calc = 0
+            for inv in invoices:
+                debug_msg += f"<tr><td>{inv.name}</td><td>{inv.posting_date}</td><td>{inv.customer}</td><td>{inv.grand_total:,.2f}</td></tr>"
+                total_calc += float(inv.grand_total)
+            
+            debug_msg += f"<tr><td colspan='3' align='right'><b>TOTAL OMSET</b></td><td><b>{total_calc:,.2f}</b></td></tr>"
+            debug_msg += "</table>"
+
+        frappe.msgprint(debug_msg, title="Debug Calculation")
+
+        # 3. Return the Sum
+        sum_query = f"SELECT SUM(SI.grand_total) FROM `tabSales Invoice` SI JOIN `tabSales Team` ST ON SI.name = ST.parent AND ST.parenttype = 'Sales Invoice' {where_clause}"
+        res = frappe.db.sql(sum_query, tuple(params))
+        
+        return float(res[0][0]) if res and res[0][0] else 0.0
             
     except Exception as e:
         frappe.log_error(frappe.get_traceback(), "Error in get_net_turnover")
@@ -893,7 +907,7 @@ def get_join_new_bonus(sales_person, start_date, end_date):
     Returns: {"total_bonus": float, "details": list}
     """
     try:
-        employee = frappe.db.get_value("Employee", {"sales_person": sales_person}, "name")
+        employee = frappe.db.get_value("Sales Person", sales_person, "employee")
         user_id = frappe.db.get_value("Employee", employee, "user_id") if employee else None
         if not user_id:
             return {"total_bonus": 0.0, "details": []}
@@ -963,9 +977,10 @@ def get_join_new_bonus(sales_person, start_date, end_date):
 def get_incentive_tier(total_omset, sales_person, date):
     """
     Finds the applicable tier for monthly turnover bonus.
+    Displays debug info about tier selection.
     """
     try:
-        employee = frappe.db.get_value("Employee", {"sales_person": sales_person}, "name")
+        employee = frappe.db.get_value("Sales Person", sales_person, "employee")
         user_id = frappe.db.get_value("Employee", employee, "user_id") if employee else None
         if not user_id: return None
         
@@ -985,16 +1000,33 @@ def get_incentive_tier(total_omset, sales_person, date):
         if not setting: return None
         
         doc = frappe.get_doc("Sales Incentive Setting", setting[0].name)
+        # Sort tiers from highest min_omset to lowest
         tiers = sorted(doc.bonus_penjualan_table, key=lambda x: x.omset_bulanan_min, reverse=True)
         
+        selected_tier = None
         for tier in tiers:
             if total_omset >= tier.omset_bulanan_min:
-                return {
+                selected_tier = {
                     "setting": doc.name,
                     "persentase": tier.persentase,
                     "bonus_admin": tier.bonus_admin,
                     "min_omset": tier.omset_bulanan_min
                 }
-        return None
-    except Exception:
+                break
+        
+        # Debug Tier Selection
+        debug_tier = f"<b>Debug Tier Selection ({doc.name})</b><br>"
+        debug_tier += f"Total Omset: {total_omset:,.2f}<br><br>"
+        
+        if selected_tier:
+            debug_tier += f"<span style='color:green'>Tier Terpilih: Min Omset {selected_tier['min_omset']:,.2f}</span><br>"
+            debug_tier += f"Bonus: {selected_tier['persentase']*100}% + {selected_tier['bonus_admin']:,.2f} Admin"
+        else:
+            debug_tier += "<span style='color:red'>Tidak masuk tier manapun (omset di bawah minimum).</span>"
+            
+        frappe.msgprint(debug_tier, title="Debug Tiering")
+        
+        return selected_tier
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "get_incentive_tier_error")
         return None

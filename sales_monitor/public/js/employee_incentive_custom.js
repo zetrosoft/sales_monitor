@@ -29,7 +29,7 @@ frappe.ui.form.on('Employee Incentive', {
                                 btn_text: __('Creating Payroll Entry...'),
                                 callback: function(r) {
                                     if (r.message) {
-                                        frappe.msgprint(__('Payroll Entry {0} created successfully.').format([r.message]));
+                                        frappe.msgprint(__('Payroll Entry {0} created successfully.', [r.message]));
                                         frm.reload_doc(); // Muat ulang dokumen untuk menampilkan link baru
                                     }
                                 }
