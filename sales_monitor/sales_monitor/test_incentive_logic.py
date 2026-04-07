@@ -159,7 +159,7 @@ def create_customer(name, sales_person, customer_group):
         "doctype": "Customer", "customer_name": name, "customer_group": customer_group,
         "territory": "All Territories", "sales_person": sales_person, "customer_type": "Individual"
     })
-    print(f"DEBUG: Created/Retrieved Customer: {customer_doc.name} for SP: {sales_person}")
+    print(f"DEBUG: Created/Retrieved Customer: {customer_doc.name}")
     return customer_doc.name
 
 def create_sales_invoice(customer, sales_person, grand_total, posting_date, is_return=0, is_new_customer=False):
